@@ -1,0 +1,153 @@
+/* ============================================================
+   style.css - Tồn Kho ERP System Styles
+   ============================================================ */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f1f5f9;
+    margin: 0;
+    padding: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.flex {
+    display: flex;
+}
+
+.h-screen {
+    height: 100vh !important;
+}
+
+.inset-0 {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.z-login {
+    z-index: 100;
+}
+
+.bg-login-bg {
+    background-color: #f1f5f9;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(37, 99, 235, 0.1);
+    border-left-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Sidebar */
+#sidebar {
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+#sidebar.collapsed {
+    width: 72px;
+}
+
+#sidebar:not(.collapsed) {
+    width: 260px;
+}
+
+.sidebar-text {
+    transition: opacity 0.2s;
+    margin-left: 0.75rem;
+    white-space: nowrap;
+}
+
+.collapsed .sidebar-text {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Nav Items */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #64748b;
+    border-radius: 0.5rem;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background-color: #f1f5f9;
+    color: #2563eb;
+}
+
+.nav-item.active {
+    background-color: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* User Menu Dropdown */
+#userMenuDropdown {
+    transform-origin: top right;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#userMenuDropdown.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    display: block !important;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 1rem;
+    width: 100%;
+    border-radius: 0.5rem;
+    color: #475569;
+    font-size: 0.875rem;
+    transition: all 0.15s;
+}
+
+.user-menu-item:hover {
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+
+.user-menu-item svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.user-menu-item.logout {
+    color: #ef4444;
+}
+
+.user-menu-item.logout:hover {
+    background-color: #fef2f2;
+}
