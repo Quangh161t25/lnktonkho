@@ -40,7 +40,7 @@
     <div id="loginScreen" class="inset-0 z-login flex-center bg-login-bg">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm border border-slate-200">
             <div class="flex justify-center mb-6">
-                <div class="text-2xl font-bold text-blue-600">VG</div>
+                <img src="logo.png" alt="VG Logo" class="w-16 h-16 rounded-2xl shadow-sm">
             </div>
             <!-- Loading Indicator -->
             <div id="loginLoading" class="hidden text-center py-4">
@@ -146,40 +146,40 @@
         <!-- Bottom Nav (Mobile Only) -->
         <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-16 z-50 md:hidden pb-safe">
             <button onclick="switchModule('home')" id="bottom-nav-home" class="flex flex-col items-center justify-center w-full h-full text-blue-600 transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span class="text-[10px] mt-1 font-medium">Trang chủ</span>
             </button>
             <button onclick="switchModule('nhapxuat')" id="bottom-nav-nhapxuat" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a1 1 0 00-1-1H7a1 1 0 00-1 1v2a1 1 0 001 1h1a1 1 0 001-1zm3 0v-5a1 1 0 00-1-1h-1a1 1 0 00-1 1v5a1 1 0 001 1h1a1 1 0 001-1zm3 0v-8a1 1 0 00-1-1h-1a1 1 0 00-1 1v8a1 1 0 001 1h1a1 1 0 001-1zM17 17a1 1 0 102 0c0-1.657-1.343-3-3-3s-3 1.343-3 3h4z" />
                 </svg>
-                <span class="text-[10px] mt-1 font-medium">Nhập xuất</span>
             </button>
             <button onclick="switchModule('tonkho')" id="bottom-nav-tonkho" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                 </svg>
-                <span class="text-[10px] mt-1 font-medium">Tồn kho</span>
             </button>
             <button onclick="switchModule('giuhang')" id="bottom-nav-giuhang" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
-                <span class="text-[10px] mt-1 font-medium">Giữ hàng</span>
             </button>
             <button onclick="switchModule('dashboard')" id="bottom-nav-dashboard" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span class="text-[10px] mt-1 font-medium">Báo cáo</span>
             </button>
         </nav>
         <!-- Sidebar -->
         <aside id="sidebar" class="bg-white border-r border-slate-200 flex flex-col h-full z-40 shrink-0 overflow-hidden transition-all duration-300 hidden md:flex">
             <div class="h-16 flex items-center justify-between px-4 shrink-0 border-b border-slate-100">
-                <div class="sidebar-text font-bold text-blue-600 text-xl truncate">VG</div>
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="sidebar-logo-container">
+                        <img src="logo.png" alt="VG Logo" class="w-full h-full object-contain rounded-lg">
+                    </div>
+                    <span class="sidebar-text font-bold text-slate-800 text-lg">Lộc Kink ERP</span>
+                </div>
                 <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-50 rounded-lg text-slate-500 transition">
                     <svg id="toggleIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
