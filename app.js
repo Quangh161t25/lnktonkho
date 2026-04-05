@@ -174,12 +174,22 @@ function switchModule(moduleName) {
     ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'].forEach(m => {
         document.getElementById(`module-${m}`).classList.add('hidden');
         const navEl = document.getElementById(`nav-${m}`);
+        const bottomNavEl = document.getElementById(`bottom-nav-${m}`);
         if (navEl) navEl.classList.remove('active');
+        if (bottomNavEl) {
+            bottomNavEl.classList.remove('text-blue-600');
+            bottomNavEl.classList.add('text-slate-400');
+        }
     });
 
     document.getElementById(`module-${moduleName}`).classList.remove('hidden');
     const activeNav = document.getElementById(`nav-${moduleName}`);
+    const activeBottomNav = document.getElementById(`bottom-nav-${moduleName}`);
     if (activeNav) activeNav.classList.add('active');
+    if (activeBottomNav) {
+        activeBottomNav.classList.remove('text-slate-400');
+        activeBottomNav.classList.add('text-blue-600');
+    }
 
     const titles = {
         'home': 'Trang chủ',
@@ -259,31 +269,53 @@ function applyFilters() {
         return;
     }
 
+    if (!tbody) return;
     tbody.innerHTML = filteredRows.map(row => {
         const ngay = row[1] || '';
         const truong = row[2] || '';
-        const mdh = row[3] || '';
+        const id = row[3] || '';
+        const check = row[4] || '';
         const khach = row[5] || '';
+        const nvkd = row[6] || '';
         const tensp = row[7] || '';
-        const slg = row[8] || '';
-        const gia = row[9] || '';
-        const tien = row[10] || '';
-        const tennv = row[12] || '';
+        const slg = row[8] || 0;
+        const dongia = row[9] || 0;
+        const thanhTien = row[10] || 0;
+        const nvc = row[11] || '';
 
         return `
-            <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">${ngay}</td>
-                <td class="px-4 py-3 text-xs font-semibold ${truong === 'NHẬP' ? 'text-blue-600' : 'text-orange-600'}">${truong}</td>
-                <td class="px-4 py-3 text-sm font-medium text-slate-700">${mdh}</td>
-                <td class="px-4 py-3 text-sm text-slate-600">${khach}</td>
-                <td class="px-4 py-3 text-sm text-slate-600">${tensp}</td>
-                <td class="px-4 py-3 text-sm text-slate-600 font-semibold">${slg}</td>
-                <td class="px-4 py-3 text-sm text-slate-600">${formatNum(gia)}</td>
-                <td class="px-4 py-3 text-sm text-emerald-600 font-bold">${formatNum(tien)}</td>
-                <td class="px-4 py-3 text-xs text-slate-400">${tennv}</td>
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${ngay}</td>
+                <td class="px-4 py-3 text-xs font-medium ${check === 'CHÈN' ? 'text-blue-600' : 'text-slate-700'}">${truong}</td>
+                <td class="px-4 py-3 text-xs font-mono font-bold text-slate-500">${id}</td>
+                <td class="px-4 py-3 text-xs text-slate-700 font-medium">${khach}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${tensp}</td>
+                <td class="px-4 py-3 text-xs text-right font-bold text-slate-700">${slg}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-500">${formatNum(dongia)}</td>
+                <td class="px-4 py-3 text-xs text-right font-bold text-emerald-600">${formatNum(thanhTien)}</td>
+                <td class="px-4 py-3 text-xs text-slate-500">${nvc}</td>
             </tr>
         `;
     }).join('');
+
+    const mobileContainer = document.getElementById('nxMobileCards');
+    if (mobileContainer) {
+        mobileContainer.innerHTML = filteredRows.map(row => `
+            <div class="mobile-card">
+                <div class="flex justify-between items-start mb-3 border-b border-slate-50 pb-2">
+                    <div class="font-bold text-slate-800 text-sm">${row[3] || 'No ID'}</div>
+                    <div class="text-[10px] font-bold px-2 py-0.5 rounded-full ${row[2] === 'NHẬP' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}">${row[2]}</div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between"><span class="mobile-card-label">Ngày</span><span class="mobile-card-value">${row[1] || ''}</span></div>
+                    <div class="flex justify-between"><span class="mobile-card-label">Khách hàng</span><span class="mobile-card-value">${row[5] || ''}</span></div>
+                    <div class="flex justify-between"><span class="mobile-card-label">Sản phẩm</span><span class="mobile-card-value">${row[7] || ''}</span></div>
+                    <div class="flex justify-between items-baseline"><span class="mobile-card-label">SL - Đơn giá</span><span class="mobile-card-value">${row[8]} x ${formatNum(row[9])}</span></div>
+                    <div class="flex justify-between pt-1 border-t border-slate-50"><span class="mobile-card-label">Thành tiền</span><span class="text-sm font-bold text-emerald-600">${formatNum(row[10])}</span></div>
+                </div>
+            </div>
+        `).join('');
+    }
 }
 
 // ─── Module: Tồn Kho ──────────────────────────────────────────
@@ -326,7 +358,6 @@ function applyTonKhoFilters() {
         return;
     }
 
-    // Aggregate NX_CT: truong=2, id_sp=6, slg=8
     const nxAgg = {};
     if (nxDataRaw && nxDataRaw.length > 1) {
         nxDataRaw.slice(1).forEach(row => {
@@ -339,7 +370,6 @@ function applyTonKhoFilters() {
         });
     }
 
-    // Aggregate GIU_HANG: id_sp=3, slg=5
     const giuAgg = {};
     if (giuHangDataRaw && giuHangDataRaw.length > 1) {
         giuHangDataRaw.slice(1).forEach(row => {
@@ -350,7 +380,6 @@ function applyTonKhoFilters() {
         });
     }
 
-    // Schema TON_KHO: 0:id, 1:ten_sp, 2:model, 6:ton_dau, 7:ton_cuoi
     const filteredRows = tonKhoDataRaw.slice(1).filter(row => {
         const id = (row[0] || '').toString();
         const ten = (row[1] || '').toString().toLowerCase();
@@ -366,12 +395,13 @@ function applyTonKhoFilters() {
         return;
     }
 
+    if (!tbody) return;
     tbody.innerHTML = filteredRows.map(row => {
         const id = (row[0] || '').toString();
         const ten = row[1] || '';
         const model = row[2] || '';
         const tondau = Number(row[6] || 0);
-        const toncuoi = Number(row[7] || 0);
+        const tonHT = Number(row[7] || 0);
 
         const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
         const tamgiu = giuAgg[id] || 0;
@@ -380,16 +410,39 @@ function applyTonKhoFilters() {
         return `
             <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="px-4 py-3 text-sm font-semibold text-slate-700">${ten}</td>
-                <td class="px-4 py-3 text-sm text-slate-600">${model}</td>
-                <td class="px-4 py-3 text-sm text-slate-600 font-medium">${formatNum(tondau)}</td>
-                <td class="px-4 py-3 text-sm text-blue-600 font-medium">${formatNum(agg.nhap)}</td>
-                <td class="px-4 py-3 text-sm text-orange-600 font-medium">${formatNum(agg.xuat)}</td>
-                <td class="px-4 py-3 text-sm text-amber-600 font-medium">${formatNum(tamgiu)}</td>
-                <td class="px-4 py-3 text-sm text-emerald-600 font-bold">${formatNum(cotheban)}</td>
-                <td class="px-4 py-3 text-sm font-bold ${toncuoi < 5 ? 'text-red-600' : 'text-slate-700'}">${formatNum(toncuoi)}</td>
+                <td class="px-4 py-3 text-xs text-slate-500 italic">${model}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-600">${formatNum(tondau)}</td>
+                <td class="px-4 py-3 text-xs text-right text-blue-600 font-medium">${formatNum(agg.nhap)}</td>
+                <td class="px-4 py-3 text-xs text-right text-orange-600 font-medium">${formatNum(agg.xuat)}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-400 font-bold">${formatNum(tamgiu)}</td>
+                <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(cotheban)}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-700 font-bold">${formatNum(tonHT)}</td>
             </tr>
         `;
     }).join('');
+
+    const mobileContainer = document.getElementById('tonKhoMobileCards');
+    if (mobileContainer) {
+        mobileContainer.innerHTML = filteredRows.map(r => {
+            const id = (r[0] || '').toString().trim();
+            const ten = (r[1] || '').toString().trim();
+            const tondau = Number(r[6] || 0);
+            const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
+            const tamgiu = giuAgg[id] || 0;
+            const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
+            return `
+                <div class="mobile-card">
+                    <div class="font-bold text-slate-800 text-sm mb-2">${ten}</div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-50 p-2 rounded-lg"><div class="mobile-card-label">Tồn đầu</div><div class="font-bold">${formatNum(tondau)}</div></div>
+                        <div class="bg-blue-50 p-2 rounded-lg"><div class="mobile-card-label text-blue-600">Nhập</div><div class="font-bold text-blue-600">${formatNum(agg.nhap)}</div></div>
+                        <div class="bg-orange-50 p-2 rounded-lg"><div class="mobile-card-label text-orange-600">Xuất</div><div class="font-bold text-orange-600">${formatNum(agg.xuat)}</div></div>
+                        <div class="bg-emerald-50 p-2 rounded-lg"><div class="mobile-card-label text-emerald-600">Có thể bán</div><div class="font-bold text-emerald-600">${formatNum(cotheban)}</div></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 }
 
 // ─── Module: Giữ Hàng ─────────────────────────────────────────
@@ -424,15 +477,16 @@ async function renderGiuHangModule() {
 
 function applyGiuHangFilters() {
     const tbody = document.getElementById('giuHangTableBody');
-    const searchTerm = document.getElementById('giuHangSearchInput').value.toLowerCase().trim();
+    const searchInput = document.getElementById('giuHangSearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
     if (!giuHangDataRaw || giuHangDataRaw.length <= 1) {
-        document.getElementById('giuHangCount').textContent = `0 bản ghi`;
-        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-10 text-center text-slate-400 text-sm">Không có dữ liệu giữ hàng.</td></tr>`;
+        const countEl = document.getElementById('giuHangCount');
+        if (countEl) countEl.textContent = `0 bản ghi`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-10 text-center text-slate-400 text-sm">Không có dữ liệu giữ hàng.</td></tr>`;
         return;
     }
 
-    // Schema GIU_HANG: 0:id, 1:id_nv, 2:ten_nv, 3:id_sp, 4:ten_sp, 5:slg
     const filteredRows = giuHangDataRaw.slice(1).filter(row => {
         const id = (row[0] || '').toString();
         const tensp = (row[4] || '').toString().toLowerCase();
@@ -441,10 +495,12 @@ function applyGiuHangFilters() {
         return !searchTerm || tensp.includes(searchTerm) || tennv.includes(searchTerm);
     });
 
-    document.getElementById('giuHangCount').textContent = `${filteredRows.length} bản ghi`;
+    const countEl = document.getElementById('giuHangCount');
+    if (countEl) countEl.textContent = `${filteredRows.length} bản ghi`;
 
+    if (!tbody) return;
     if (filteredRows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy bản ghi phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy bản ghi phù hợp.</td></tr>';
         return;
     }
 
@@ -458,27 +514,70 @@ function applyGiuHangFilters() {
         return `
             <tr class="hover:bg-slate-50/80 transition-colors group">
                 <td class="px-4 py-3 text-sm text-slate-700">
-                     <div class="flex flex-col">
-                        <span class="font-semibold">${tennv}</span>
-                        <span class="text-[10px] text-slate-400 uppercase">${row[1] || ''}</span>
-                     </div>
+                    <div class="font-medium">${tennv}</div>
                 </td>
-                <td class="px-4 py-3 text-xs text-slate-500 font-mono text-center">${idsp}</td>
-                <td class="px-4 py-3 text-sm text-slate-600 font-medium">${tensp}</td>
-                <td class="px-4 py-3 text-sm text-blue-600 font-bold text-right">${formatNum(slg)}</td>
                 <td class="px-4 py-3 text-center">
-                    <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openGHDrawer('${id}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="Sửa">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-bold font-mono">
+                        ${idsp}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-600 italic">
+                    ${tensp}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <span class="font-bold text-blue-600 font-mono">${formatNum(slg)}</span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openGHDrawer('${id}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition" title="Sửa">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                         </button>
-                        <button onclick="deleteGiuHang('${id}')" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition" title="Xóa">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <button onclick="deleteGiuHang('${id}')" class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="Xóa">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                         </button>
                     </div>
                 </td>
             </tr>
         `;
     }).join('');
+
+    const mobileContainer = document.getElementById('giuHangMobileCards');
+    if (mobileContainer) {
+        mobileContainer.innerHTML = filteredRows.map(row => {
+            const id = row[0];
+            const tennv = row[2] || '';
+            const idsp = row[3] || '';
+            const tensp = row[4] || '';
+            const slg = Number(row[5] || 0);
+            return `
+                <div class="mobile-card">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="font-bold text-slate-800 text-sm">${tennv}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${idsp}</div>
+                    </div>
+                    <div class="text-xs text-slate-600 mb-3">${tensp}</div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                        <span class="mobile-card-label">Số lượng</span>
+                        <div class="flex items-center gap-4">
+                            <span class="text-blue-600 font-bold">${formatNum(slg)}</span>
+                            <div class="flex gap-2">
+                                <button onclick="openGHDrawer('${id}')" class="p-2 text-blue-500 bg-blue-50 rounded-lg">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </button>
+                                <button onclick="deleteGiuHang('${id}')" class="p-2 text-red-500 bg-red-50 rounded-lg">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 }
 
 // ─── CRUD: Drawer Giữ Hàng ────────────────────────────────────
@@ -936,10 +1035,44 @@ window.addEventListener('load', async () => {
             updateUserProfileUI();
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
+            switchModule('home');
             Promise.all([fetchNXData(), fetchTonKhoData(), fetchGiuHangData()]).catch(console.error);
         } catch (e) {
             localStorage.removeItem('erp_user_session');
         }
     }
     await fetchAuthData();
+
+    // Register PWA features (Only on HTTP/HTTPS)
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        // Inject Manifest
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = 'manifest.json';
+        document.head.appendChild(link);
+
+        // Inject Meta Tags
+        const metaTheme = document.createElement('meta');
+        metaTheme.name = 'theme-color';
+        metaTheme.content = '#2563eb';
+        document.head.appendChild(metaTheme);
+
+        const metaApple = document.createElement('meta');
+        metaApple.name = 'apple-mobile-web-app-capable';
+        metaApple.content = 'yes';
+        document.head.appendChild(metaApple);
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('sw.js');
+                console.log('Service Worker registered');
+                registration.update();
+            } catch (e) {
+                console.error('SW registration failed', e);
+            }
+        }
+    } else if (window.location.protocol === 'file:') {
+        console.warn('PWA features (Service Worker, Manifest) are disabled because you are running the file locally via file://. Please use a web server (http/https) to enable these features.');
+    }
 });

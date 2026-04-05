@@ -10,7 +10,7 @@ body {
 }
 
 .hidden {
-    display: none !important;
+    display: none;
 }
 
 .flex {
@@ -150,4 +150,86 @@ body {
 
 .user-menu-item.logout:hover {
     background-color: #fef2f2;
+}
+
+/* Bottom Navigation */
+#bottomNav {
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+#bottomNav button.active {
+    color: #2563eb;
+}
+
+#bottomNav button.active svg {
+    stroke-width: 2.5;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    main {
+        padding: 1rem !important;
+    }
+    
+    header {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    #sidebar {
+        display: none !important;
+    }
+
+    /* Mobile Cards */
+    .mobile-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .mobile-card-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .mobile-card-value {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1e293b;
+    }
+}
+
+/* Notifications Button */
+#stockNotiBtn.active {
+    color: #2563eb;
+}
+
+#stockNotiBtn.active #notiStatusDot {
+    background-color: #ef4444;
+    display: block;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
