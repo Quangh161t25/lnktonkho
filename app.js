@@ -443,6 +443,9 @@ function applyTonKhoFilters() {
             `;
         }).join('');
     }
+
+    // Check for stock-out alerts
+    checkStockAndNotify();
 }
 
 // ─── Module: Giữ Hàng ─────────────────────────────────────────
@@ -1075,4 +1078,86 @@ window.addEventListener('load', async () => {
     } else if (window.location.protocol === 'file:') {
         console.warn('PWA features (Service Worker, Manifest) are disabled because you are running the file locally via file://. Please use a web server (http/https) to enable these features.');
     }
+
+    initNotificationService();
 });
+
+// ─── Notification Service ────────────────────────────────────
+let notiPollingId = null;
+let notifiedItems = JSON.parse(localStorage.getItem('erp_notified_items') || '{}');
+
+async function toggleStockNotifications() {
+    if (!("Notification" in window)) {
+        alert("Trình duyệt này không hỗ trợ thông báo.");
+        return;
+    }
+
+    if (Notification.permission === "denied") {
+        alert("Bạn đã chặn thông báo. Vui lòng vào cài đặt trình duyệt để bật lại.");
+        return;
+    }
+
+    const currentStatus = localStorage.getItem('erp_noti_enabled') === 'true';
+    if (!currentStatus) {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            localStorage.setItem('erp_noti_enabled', 'true');
+            initNotificationService();
+            new Notification("Đã bật thông báo kho", { body: "Bạn sẽ nhận được cảnh báo khi sản phẩm hết hàng." });
+        }
+    } else {
+        localStorage.setItem('erp_noti_enabled', 'false');
+        initNotificationService();
+    }
+}
+
+function initNotificationService() {
+    const isEnabled = localStorage.getItem('erp_noti_enabled') === 'true';
+    const btn = document.getElementById('stockNotiBtn');
+    if (btn) {
+        if (isEnabled && Notification.permission === "granted") {
+            btn.classList.add('active');
+            if (!notiPollingId) {
+                // Kiểm tra mỗi 5 phút
+                notiPollingId = setInterval(() => {
+                    fetchTonKhoData().then(checkStockAndNotify);
+                }, 5 * 60 * 1000);
+            }
+            checkStockAndNotify();
+        } else {
+            btn.classList.remove('active');
+            if (notiPollingId) {
+                clearInterval(notiPollingId);
+                notiPollingId = null;
+            }
+        }
+    }
+}
+
+function checkStockAndNotify() {
+    if (!tonKhoDataRaw || tonKhoDataRaw.length <= 1) return;
+    if (localStorage.getItem('erp_noti_enabled') !== 'true') return;
+
+    let hasNewAlert = false;
+    tonKhoDataRaw.slice(1).forEach(row => {
+        const id = row[0];
+        const name = row[1];
+        const tonHT = Number(row[7] || 0);
+
+        if (tonHT <= 0 && !notifiedItems[id]) {
+            notifiedItems[id] = true;
+            hasNewAlert = true;
+            new Notification("HẾT HÀNG: " + name, {
+                body: `Sản phẩm "${name}" hiện đã hết hàng.`,
+                icon: "icons/icon-512.png"
+            });
+        } else if (tonHT > 0 && notifiedItems[id]) {
+            delete notifiedItems[id];
+            hasNewAlert = true;
+        }
+    });
+
+    if (hasNewAlert) {
+        localStorage.setItem('erp_notified_items', JSON.stringify(notifiedItems));
+    }
+}
