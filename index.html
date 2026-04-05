@@ -549,36 +549,57 @@
                 <!-- Module: Dashboard -->
                 <div id="module-dashboard" class="hidden h-full flex flex-col">
                     <!-- Dashboard Filter Bar -->
-                    <div
-                        class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center gap-4 shrink-0 overflow-x-auto no-scrollbar">
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="dbFromDate" onchange="renderDashboard()"
-                                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                            <span class="text-slate-400 text-xs text-center">→</span>
-                            <input type="date" id="dbToDate" onchange="renderDashboard()"
-                                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-4 shrink-0">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <!-- Date Range with +/- -->
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                    <button onclick="changeDate('dbFromDate', -1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbFromDate" onchange="renderDashboard()" class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbFromDate', 1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                </div>
+                                <span class="text-slate-300">→</span>
+                                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                    <button onclick="changeDate('dbToDate', -1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbToDate" onchange="renderDashboard()" class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbToDate', 1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Select -->
+                            <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                                <button onclick="setQuickDate('today')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Hôm nay</button>
+                                <button onclick="setQuickDate('week')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tuần này</button>
+                                <button onclick="setQuickDate('month')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tháng này</button>
+                            </div>
+
+                            <!-- Type Buttons -->
+                            <div id="dbTypeButtons" class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                                <button onclick="setDbType('')" id="btn-type-all" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg bg-white shadow-sm transition active-type">Tất cả</button>
+                                <button onclick="setDbType('NHẬP')" id="btn-type-nhap" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Nhập</button>
+                                <button onclick="setDbType('XUẤT')" id="btn-type-xuat" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Xuất</button>
+                                <input type="hidden" id="dbTruong" value="">
+                            </div>
                         </div>
-                        <div class="h-6 w-px bg-slate-100 mx-1"></div>
-                        <input type="text" id="dbIdSp" oninput="renderDashboard(); renderInventoryAnalytics()"
-                            placeholder="Mã SP..."
-                            class="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <select id="dbTruong" onchange="renderDashboard()"
-                            class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white font-semibold">
-                            <option value="">Loại</option>
-                            <option value="NHẬP">NHẬP</option>
-                            <option value="XUẤT">XUẤT</option>
-                        </select>
-                        <input type="text" id="dbMaKh" oninput="renderDashboard()" placeholder="Mã KH..."
-                            class="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <input type="text" id="dbIdNv" oninput="renderDashboard()" placeholder="ID NV..."
-                            class="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <div class="ml-auto flex items-center gap-2">
-                            <button onclick="refreshDashboard()"
-                                class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
-                                title="Làm mới báo cáo">
+
+                        <div class="flex flex-wrap items-center gap-4">
+                            <!-- Advanced Inputs with Datalists -->
+                            <div class="relative flex-1 min-w-[150px]">
+                                <input type="text" id="dbIdSp" oninput="renderDashboard()" list="dl-products" placeholder="Mã hoặc Tên SP..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-products"></datalist>
+                            </div>
+                            <div class="relative flex-1 min-w-[120px]">
+                                <input type="text" id="dbMaKh" oninput="renderDashboard()" list="dl-customers" placeholder="Mã KH..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-customers"></datalist>
+                            </div>
+                            <div class="relative flex-1 min-w-[120px]">
+                                <input type="text" id="dbIdNv" oninput="renderDashboard()" list="dl-employees" placeholder="ID NV..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-employees"></datalist>
+                            </div>
+
+                            <button onclick="refreshDashboard()" class="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition" title="Làm mới báo cáo">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                             </button>
                         </div>

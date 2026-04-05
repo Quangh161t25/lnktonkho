@@ -111,8 +111,12 @@ function handleLogin() {
         currentUser = user;
         localStorage.setItem('erp_user_session', JSON.stringify(user));
         updateUserProfileUI();
+        if (currentUser.role === 'NPP') switchModule('tonkho');
+        else switchModule('home');
+        setQuickDate('month'); // Initialize dashboard dates
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
+        Promise.all([fetchNXData(), fetchTonKhoData(), fetchGiuHangData()]).then(() => renderDashboard()).catch(console.error);
     } else {
         alert('Tài khoản hoặc mật khẩu không chính xác!');
     }
@@ -167,12 +171,45 @@ function updateUserProfileUI() {
     const roleMob = document.getElementById('userRoleHeaderMobile');
     if (nameMob) nameMob.textContent = currentUser.name || currentUser.id;
     if (roleMob) roleMob.textContent = currentUser.role || "Nhân viên";
+
+    // Hide/Show Navigation items based on role
+    const allowed = ROLE_PERMISSIONS[currentUser.role] || ['home'];
+    ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'].forEach(m => {
+        const navEl = document.getElementById(`nav-${m}`);
+        const bNavEl = document.getElementById(`bottom-nav-${m}`);
+        const isAllowed = allowed.includes(m);
+        
+        if (navEl) {
+            if (isAllowed) navEl.classList.remove('hidden');
+            else navEl.classList.add('hidden');
+        }
+        if (bNavEl) {
+            if (isAllowed) bNavEl.classList.remove('hidden');
+            else bNavEl.classList.add('hidden');
+        }
+    });
 }
 
 // ─── Module Navigation ────────────────────────────────────────
+// ─── RBAC Configuration ──────────────────────────────────────
+const ROLE_PERMISSIONS = {
+    'ADMIN': ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'],
+    'kt': ['nhapxuat', 'tonkho', 'giuhang', 'dashboard'],
+    'NPP': ['tonkho', 'nhapxuat']
+};
+
 function switchModule(moduleName) {
+    if (!currentUser) return;
+    const allowed = ROLE_PERMISSIONS[currentUser.role] || ['home'];
+    if (!allowed.includes(moduleName)) {
+        alert("Bạn không có quyền truy cập vào mục này.");
+        return;
+    }
+
     ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'].forEach(m => {
-        document.getElementById(`module-${m}`).classList.add('hidden');
+        const mod = document.getElementById(`module-${m}`);
+        if (mod) mod.classList.add('hidden');
+        
         const navEl = document.getElementById(`nav-${m}`);
         const bottomNavEl = document.getElementById(`bottom-nav-${m}`);
         if (navEl) navEl.classList.remove('active');
@@ -182,7 +219,9 @@ function switchModule(moduleName) {
         }
     });
 
-    document.getElementById(`module-${moduleName}`).classList.remove('hidden');
+    const targetMod = document.getElementById(`module-${moduleName}`);
+    if (targetMod) targetMod.classList.remove('hidden');
+
     const activeNav = document.getElementById(`nav-${moduleName}`);
     const activeBottomNav = document.getElementById(`bottom-nav-${moduleName}`);
     if (activeNav) activeNav.classList.add('active');
@@ -228,6 +267,7 @@ async function fetchNXData() {
         const data = await resp.json();
         nxDataRaw = data.values || [];
         localStorage.setItem('erp_nx_cache', JSON.stringify(nxDataRaw));
+        updateDashboardFilterOptions();
         return nxDataRaw;
     } catch (err) {
         console.error("NX Data Fetch Error:", err);
@@ -249,7 +289,17 @@ function applyFilters() {
     const typeFilter = document.getElementById('nxTypeFilter').value;
     const tbody = document.getElementById('nxTableBody');
 
+    const isNPP = currentUser && currentUser.role === 'NPP';
+    const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
+    const iMaKH = nxHeaders.indexOf('ma_kh');
+
     const filteredRows = nxDataRaw.slice(1).filter(row => {
+        // NPP data limitation
+        if (isNPP && iMaKH !== -1) {
+            const rowMaKH = (row[iMaKH] || '').toString().trim();
+            if (rowMaKH !== currentUser.id) return false;
+        }
+
         const mdh = (row[3] || '').toString().toLowerCase();
         const khach = (row[5] || '').toString().toLowerCase();
         const tensp = (row[7] || '').toString();
@@ -380,11 +430,35 @@ function applyTonKhoFilters() {
         });
     }
 
+    const isNPP = currentUser && currentUser.role === 'NPP';
+    let allowedProductIds = new Set();
+    if (isNPP) {
+        // NPP chỉ thấy SP mà họ đã từng XUẤT (Lọc theo cột ma_kh trong NX_CT)
+        const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
+        const iMaKH = nxHeaders.indexOf('ma_kh');
+        
+        if (nxDataRaw && nxDataRaw.length > 1) {
+            nxDataRaw.slice(1).forEach(row => {
+                const type = (row[2] || '').toString();
+                const rowMaKH = iMaKH !== -1 ? (row[iMaKH] || '').toString().trim() : '';
+                const spName = (row[7] || '').toString(); 
+                
+                if (type === 'XUẤT' && rowMaKH === currentUser.id) {
+                    allowedProductIds.add(spName); 
+                }
+            });
+        }
+    }
+
     const filteredRows = tonKhoDataRaw.slice(1).filter(row => {
         const id = (row[0] || '').toString();
         const ten = (row[1] || '').toString().toLowerCase();
         const model = (row[2] || '').toString().toLowerCase();
         if (!id || !ten) return false;
+
+        // NPP Filter
+        if (isNPP && !allowedProductIds.has(row[1])) return false;
+
         return !searchTerm || ten.includes(searchTerm) || model.includes(searchTerm);
     });
 
@@ -396,6 +470,30 @@ function applyTonKhoFilters() {
     }
 
     if (!tbody) return;
+
+    // NPP Column visibility (Header)
+    const headerRow = document.querySelector('#module-tonkho thead tr');
+    if (headerRow) {
+        if (isNPP) {
+            headerRow.innerHTML = `
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên SP</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Model</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Có thể bán</th>
+            `;
+        } else {
+            headerRow.innerHTML = `
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên SP</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Model</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Tồn đầu</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Nhập</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Xuất</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Tạm giữ</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Có thể bán</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Tồn cuối</th>
+            `;
+        }
+    }
+
     tbody.innerHTML = filteredRows.map(row => {
         const id = (row[0] || '').toString();
         const ten = row[1] || '';
@@ -406,6 +504,16 @@ function applyTonKhoFilters() {
         const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
         const tamgiu = giuAgg[id] || 0;
         const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
+
+        if (isNPP) {
+            return `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-700">${ten}</td>
+                    <td class="px-4 py-3 text-xs text-slate-500 italic">${model}</td>
+                    <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(cotheban)}</td>
+                </tr>
+            `;
+        }
 
         return `
             <tr class="hover:bg-slate-50/80 transition-colors">
@@ -426,10 +534,25 @@ function applyTonKhoFilters() {
         mobileContainer.innerHTML = filteredRows.map(r => {
             const id = (r[0] || '').toString().trim();
             const ten = (r[1] || '').toString().trim();
+            const model = (r[2] || '').toString().trim();
             const tondau = Number(r[6] || 0);
             const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
             const tamgiu = giuAgg[id] || 0;
             const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
+
+            if (isNPP) {
+                return `
+                    <div class="mobile-card">
+                        <div class="font-bold text-slate-800 text-sm mb-1">${ten}</div>
+                        <div class="text-[10px] text-slate-400 italic mb-2">${model}</div>
+                        <div class="bg-emerald-50 p-3 rounded-xl flex justify-between items-center">
+                            <div class="mobile-card-label text-emerald-600 font-semibold">Có thể bán</div>
+                            <div class="font-bold text-emerald-700 text-lg">${formatNum(cotheban)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="mobile-card">
                     <div class="font-bold text-slate-800 text-sm mb-2">${ten}</div>
@@ -768,6 +891,104 @@ async function clearAllGiuHang() {
     }
 }
 
+// ─── Dashboard Helpers ─────────────────────────────────────
+function changeDate(inputId, delta) {
+    const el = document.getElementById(inputId);
+    let d = el.value ? new Date(el.value) : new Date();
+    d.setDate(d.getDate() + delta);
+    el.value = d.toISOString().split('T')[0];
+    renderDashboard();
+}
+
+function setQuickDate(range) {
+    const from = document.getElementById('dbFromDate');
+    const to = document.getElementById('dbToDate');
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+
+    if (range === 'today') {
+        // start = end = now
+    } else if (range === 'week') {
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1); 
+        start = new Date(now.setDate(diff));
+        end = new Date();
+    } else if (range === 'month') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date();
+    }
+
+    from.value = start.toISOString().split('T')[0];
+    to.value = end.toISOString().split('T')[0];
+    renderDashboard();
+}
+
+function setDbType(val) {
+    document.getElementById('dbTruong').value = val;
+    const group = document.getElementById('dbTypeButtons');
+    group.querySelectorAll('button').forEach(btn => {
+        btn.classList.remove('bg-white', 'shadow-sm', 'active-type');
+        btn.classList.add('hover:bg-white');
+    });
+    const id = val === 'NHẬP' ? 'btn-type-nhap' : (val === 'XUẤT' ? 'btn-type-xuat' : 'btn-type-all');
+    const active = document.getElementById(id);
+    if (active) {
+        active.classList.add('bg-white', 'shadow-sm', 'active-type');
+        active.classList.remove('hover:bg-white');
+    }
+    renderDashboard();
+}
+
+function updateDashboardFilterOptions() {
+    if (!nxDataRaw || nxDataRaw.length <= 1) return;
+    const headers = nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim());
+    const findI = (terms) => {
+        for (const t of terms) {
+            const idx = headers.findIndex(h => h.includes(t));
+            if (idx !== -1) return idx;
+        }
+        return -1;
+    };
+
+    const iIdSp = findI(['id_sp', 'mã sp', 'mã sản phẩm']);
+    const iTenSp = findI(['tên sp', 'tên sản phẩm', 'product']);
+    const iMaKh = findI(['ma_kh', 'mã kh', 'mã khách']);
+    const iKhach = findI(['khách hàng', 'tên kh', 'customer']);
+    const iIdNv = findI(['id_nv', 'mã nv', 'id nhân viên']);
+    const iNv = findI(['nhân viên', 'nvkd', 'staff']);
+
+    const products = new Set();
+    const customers = new Set();
+    const employees = new Set();
+
+    nxDataRaw.slice(1).forEach(r => {
+        const idSp = (r[iIdSp !== -1 ? iIdSp : 6] || '').toString().trim();
+        const tenSp = (r[iTenSp !== -1 ? iTenSp : 7] || '').toString().trim();
+        if (idSp && tenSp) products.add(`${idSp} - ${tenSp}`);
+        else if (idSp) products.add(idSp);
+
+        const maKh = (r[iMaKh !== -1 ? iMaKh : 4] || '').toString().trim();
+        const tenKh = (r[iKhach !== -1 ? iKhach : 5] || '').toString().trim();
+        if (maKh && tenKh) customers.add(`${maKh} - ${tenKh}`);
+        else if (maKh) customers.add(maKh);
+
+        const idNv = (r[iIdNv !== -1 ? iIdNv : 11] || '').toString().trim();
+        const tenNv = (r[iNv !== -1 ? iNv : 6] || '').toString().trim();
+        if (idNv && tenNv) employees.add(`${idNv} - ${tenNv}`);
+        else if (idNv) employees.add(idNv);
+    });
+
+    const populate = (id, items) => {
+        const dl = document.getElementById(id);
+        if (dl) dl.innerHTML = Array.from(items).sort().map(i => `<option value="${i}">`).join('');
+    };
+
+    populate('dl-products', products);
+    populate('dl-customers', customers);
+    populate('dl-employees', employees);
+}
+
 // ─── Module: Dashboard ────────────────────────────────────────
 async function refreshDashboard() {
     const btn = document.querySelector('[onclick="refreshDashboard()"]');
@@ -807,26 +1028,55 @@ function renderDashboard() {
     const agg = {};
     const dailyAgg = {};
 
+    const headers = nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim());
+    const findI = (terms) => {
+        for (const t of terms) {
+            const idx = headers.findIndex(h => h.includes(t));
+            if (idx !== -1) return idx;
+        }
+        return -1;
+    };
+
+    const iDate = findI(['ngày', 'date']);
+    const iType = findI(['trường', 'loại', 'type']);
+    const iMaKh = findI(['ma_kh', 'mã kh', 'mã khách']);
+    const iKhach = findI(['khách hàng', 'tên kh', 'customer']);
+    const iIdSp = findI(['id_sp', 'mã sp', 'mã sản phẩm']);
+    const iTenSp = findI(['tên sp', 'tên sản phẩm', 'product']);
+    const iIdNv = findI(['id_nv', 'mã nv', 'id nhân viên']);
+    const iNv = findI(['nhân viên', 'nvkd', 'staff']);
+    const iSlg = findI(['số lượng', 'slg', 'quantity']);
+
     nxDataRaw.slice(1).forEach(r => {
-        const rawDate = r[1] || '';
+        const rawDate = r[iDate !== -1 ? iDate : 1] || '';
         const rDateObj = parseDateStr(rawDate);
         if (!rDateObj) return;
 
-        const rTruong = (r[2] || '').toString();
-        const rMaKh = (r[4] || '').toString().toLowerCase();
-        const rIdSp = (r[6] || '').toString().toLowerCase();
-        const rIdNv = (r[11] || '').toString().toLowerCase();
+        const rTruong = (r[iType !== -1 ? iType : 2] || '').toString();
+        const rMaKh = (r[iMaKh !== -1 ? iMaKh : 4] || '').toString().toLowerCase();
+        const rTenKh = (r[iKhach !== -1 ? iKhach : 5] || '').toString().toLowerCase();
+        const rIdSp = (r[iIdSp !== -1 ? iIdSp : 6] || '').toString().toLowerCase();
+        const rTenSp = (r[iTenSp !== -1 ? iTenSp : 7] || '').toString().toLowerCase();
+        const rIdNv = (r[iIdNv !== -1 ? iIdNv : 11] || '').toString().toLowerCase();
+        const rTenNv = (r[iNv !== -1 ? iNv : 6] || '').toString().toLowerCase();
 
         if (fFrom && rDateObj < fFrom) return;
         if (fTo && rDateObj > fTo) return;
-        if (filterIdSp && !rIdSp.includes(filterIdSp)) return;
-        if (filterTruong && rTruong !== filterTruong) return;
-        if (filterMaKh && !rMaKh.includes(filterMaKh)) return;
-        if (filterIdNv && !rIdNv.includes(filterIdNv)) return;
+        
+        // Robust Filter (Mã hoặc Tên)
+        const checkMatch = (val, id, name) => {
+            if (!val) return true;
+            return id.includes(val) || name.includes(val) || val.includes(id);
+        };
 
-        const id = r[6] || 'N/A';
-        const name = r[7] || 'Sản phẩm không tên';
-        const slg = Number(r[8] || 0);
+        if (!checkMatch(filterIdSp, rIdSp, rTenSp)) return;
+        if (filterTruong && rTruong !== filterTruong) return;
+        if (!checkMatch(filterMaKh, rMaKh, rTenKh)) return;
+        if (!checkMatch(filterIdNv, rIdNv, rTenNv)) return;
+
+        const id = r[iIdSp !== -1 ? iIdSp : 6] || 'N/A';
+        const name = r[iTenSp !== -1 ? iTenSp : 7] || 'Sản phẩm không tên';
+        const slg = Number(r[iSlg !== -1 ? iSlg : 8] || 0);
 
         if (!agg[id]) agg[id] = { name, nhap: 0, xuat: 0 };
         if (rTruong === 'NHẬP') agg[id].nhap += slg;
@@ -1038,8 +1288,10 @@ window.addEventListener('load', async () => {
             updateUserProfileUI();
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
-            switchModule('home');
-            Promise.all([fetchNXData(), fetchTonKhoData(), fetchGiuHangData()]).catch(console.error);
+            if (currentUser.role === 'NPP') switchModule('tonkho');
+            else switchModule('home');
+            setQuickDate('month'); // Default dashboard to this month
+            Promise.all([fetchNXData(), fetchTonKhoData(), fetchGiuHangData()]).then(() => renderDashboard()).catch(console.error);
         } catch (e) {
             localStorage.removeItem('erp_user_session');
         }
@@ -1118,9 +1370,9 @@ function initNotificationService() {
         if (isEnabled && Notification.permission === "granted") {
             btn.classList.add('active');
             if (!notiPollingId) {
-                // Kiểm tra mỗi 5 phút
+                // Kiểm tra mỗi 5 phút (Tải cả 3 bảng để tính số lượng Có thể bán)
                 notiPollingId = setInterval(() => {
-                    fetchTonKhoData().then(checkStockAndNotify);
+                    Promise.all([fetchTonKhoData(), fetchNXData(), fetchGiuHangData()]).then(checkStockAndNotify);
                 }, 5 * 60 * 1000);
             }
             checkStockAndNotify();
@@ -1138,20 +1390,48 @@ function checkStockAndNotify() {
     if (!tonKhoDataRaw || tonKhoDataRaw.length <= 1) return;
     if (localStorage.getItem('erp_noti_enabled') !== 'true') return;
 
+    // 1. Tính toán số liệu tổng hợp (giống applyTonKhoFilters)
+    const nxAgg = {};
+    if (nxDataRaw && nxDataRaw.length > 1) {
+        nxDataRaw.slice(1).forEach(row => {
+            const idSp = (row[6] || '').toString();
+            const type = (row[2] || '').toString();
+            const slg = Number(row[8] || 0);
+            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0 };
+            if (type === 'NHẬP') nxAgg[idSp].nhap += slg;
+            if (type === 'XUẤT') nxAgg[idSp].xuat += slg;
+        });
+    }
+    const giuAgg = {};
+    if (giuHangDataRaw && giuHangDataRaw.length > 1) {
+        giuHangDataRaw.slice(1).forEach(row => {
+            const idSp = (row[3] || '').toString();
+            const slg = Number(row[5] || 0);
+            if (!giuAgg[idSp]) giuAgg[idSp] = 0;
+            giuAgg[idSp] += slg;
+        });
+    }
+
     let hasNewAlert = false;
     tonKhoDataRaw.slice(1).forEach(row => {
-        const id = row[0];
-        const name = row[1];
-        const tonHT = Number(row[7] || 0);
+        const id = (row[0] || '').toString();
+        const name = (row[1] || '').toString();
+        const tondau = Number(row[6] || 0);
 
-        if (tonHT <= 0 && !notifiedItems[id]) {
+        // Tính Có thể bán = Tồn đầu + Nhập - Xuất - Tạm giữ
+        const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
+        const tamgiu = giuAgg[id] || 0;
+        const available = tondau + agg.nhap - agg.xuat - tamgiu;
+
+        if (available <= 0 && !notifiedItems[id]) {
             notifiedItems[id] = true;
             hasNewAlert = true;
-            new Notification("HẾT HÀNG: " + name, {
-                body: `Sản phẩm "${name}" hiện đã hết hàng.`,
+            new Notification("HẾT HÀNG (Có thể bán): " + name, {
+                body: `Sản phẩm "${name}" đã hết số lượng có thể bán.`,
                 icon: "icons/icon-512.png"
             });
-        } else if (tonHT > 0 && notifiedItems[id]) {
+        } else if (available > 0 && notifiedItems[id]) {
+            // Đã nhập thêm hàng, xóa khỏi danh sách đã báo
             delete notifiedItems[id];
             hasNewAlert = true;
         }
