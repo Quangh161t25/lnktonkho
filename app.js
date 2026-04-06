@@ -206,6 +206,7 @@ function updateUserProfileUI() {
     ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'].forEach(m => {
         const navEl = document.getElementById(`nav-${m}`);
         const bNavEl = document.getElementById(`bottom-nav-${m}`);
+        const cardEl = document.getElementById(`home-card-${m}`);
         const isAllowed = allowed.includes(m);
 
         if (navEl) {
@@ -216,7 +217,24 @@ function updateUserProfileUI() {
             if (isAllowed) bNavEl.classList.remove('hidden');
             else bNavEl.classList.add('hidden');
         }
+        if (cardEl) {
+            if (isAllowed) cardEl.classList.remove('hidden');
+            else cardEl.classList.add('hidden');
+        }
     });
+
+    // Hide/Show Upload Buttons for Nhập Xuất (Only Admin & kt)
+    const canUpload = currentUser.role === 'ADMIN' || currentUser.role === 'kt';
+    const btnNhap = document.getElementById('btnUploadNhap');
+    const btnXuat = document.getElementById('btnUploadXuat');
+    if (btnNhap) {
+        if (canUpload) btnNhap.classList.remove('hidden');
+        else btnNhap.classList.add('hidden');
+    }
+    if (btnXuat) {
+        if (canUpload) btnXuat.classList.remove('hidden');
+        else btnXuat.classList.add('hidden');
+    }
 }
 
 // ─── Module Navigation ────────────────────────────────────────
@@ -316,7 +334,11 @@ function applyFilters(resetPage) {
     if (!nxDataRaw || nxDataRaw.length <= 1) return;
 
     const searchTerm = document.getElementById('nxSearchInput').value.toLowerCase().trim();
+    const idSpSearch = document.getElementById('nxSearchIdSp').value.toLowerCase().trim();
+    const tenSpSearch = document.getElementById('nxSearchTenSp').value.toLowerCase().trim();
     const typeFilter = document.getElementById('nxTypeFilter').value;
+    const dateFrom = document.getElementById('nxDateFrom').value;
+    const dateTo = document.getElementById('nxDateTo').value;
     const tbody = document.getElementById('nxTableBody');
 
     const isNPP = currentUser && currentUser.role === 'NPP';
@@ -329,6 +351,7 @@ function applyFilters(resetPage) {
         return new Date(s);
     };
 
+    let totalThanhTien = 0;
     let filteredRows = nxDataRaw.slice(1).filter(row => {
         if (isNPP && iMaKH !== -1) {
             const rowMaKH = (row[iMaKH] || '').toString().trim();
@@ -336,21 +359,46 @@ function applyFilters(resetPage) {
         }
         const mdh = (row[3] || '').toString().toLowerCase();
         const khach = (row[5] || '').toString().toLowerCase();
-        const tensp = (row[7] || '').toString();
+        const idsp = (row[6] || '').toString().toLowerCase();
+        const tensp = (row[7] || '').toString().toLowerCase();
         const truong = (row[2] || '').toString();
+        const rowDate = parseDateNX(row[1]);
+
         if (!mdh && !tensp) return false;
+
         const matchesSearch = !searchTerm || mdh.includes(searchTerm) || khach.includes(searchTerm);
+        const matchesIdSp = !idSpSearch || idsp.includes(idSpSearch);
+        const matchesTenSp = !tenSpSearch || tensp.includes(tenSpSearch);
         const matchesType = !typeFilter || truong === typeFilter;
-        return matchesSearch && matchesType;
+
+        // Date range filter
+        let matchesDate = true;
+        if (dateFrom) {
+            const dFrom = new Date(dateFrom);
+            dFrom.setHours(0, 0, 0, 0);
+            if (rowDate < dFrom) matchesDate = false;
+        }
+        if (dateTo) {
+            const dTo = new Date(dateTo);
+            dTo.setHours(23, 59, 59, 999);
+            if (rowDate > dTo) matchesDate = false;
+        }
+
+        const isMatch = matchesSearch && matchesIdSp && matchesTenSp && matchesType && matchesDate;
+        if (isMatch) {
+            totalThanhTien += Number(row[10] || 0);
+        }
+        return isMatch;
     });
 
     // Sort by date descending
     filteredRows.sort((a, b) => parseDateNX(b[1]).getTime() - parseDateNX(a[1]).getTime());
 
     document.getElementById('nxCount').textContent = `${filteredRows.length} đơn hàng`;
+    document.getElementById('nxTotalAmount').textContent = formatNum(totalThanhTien);
 
     if (filteredRows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>';
         renderPagination(0, 1, 'nxPagination', 'goNxPage');
         return;
     }
@@ -364,21 +412,25 @@ function applyFilters(resetPage) {
         const ngay = row[1] || '';
         const truong = row[2] || '';
         const id = row[3] || '';
-        const check = row[4] || '';
         const khach = row[5] || '';
-        const nvkd = row[6] || '';
+        const idsp = row[6] || '';
         const tensp = row[7] || '';
         const slg = row[8] || 0;
         const dongia = row[9] || 0;
         const thanhTien = row[10] || 0;
         const nvc = row[11] || '';
 
+        const typeClass = truong === 'NHẬP' ? 'bg-blue-50 text-blue-600' : (truong === 'XUẤT' ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-700');
+
         return `
             <tr class="hover:bg-slate-50 transition-colors">
                 <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${ngay}</td>
-                <td class="px-4 py-3 text-xs font-medium ${check === 'CHÈN' ? 'text-blue-600' : 'text-slate-700'}">${truong}</td>
+                <td class="px-4 py-3 text-center">
+                    <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${typeClass}">${truong}</span>
+                </td>
                 <td class="px-4 py-3 text-xs font-mono font-bold text-slate-500">${id}</td>
                 <td class="px-4 py-3 text-xs text-slate-700 font-medium">${khach}</td>
+                <td class="px-4 py-3 text-xs font-mono text-slate-400 font-bold">${idsp}</td>
                 <td class="px-4 py-3 text-xs text-slate-600">${tensp}</td>
                 <td class="px-4 py-3 text-xs text-right font-bold text-slate-700">${slg}</td>
                 <td class="px-4 py-3 text-xs text-right text-slate-500">${formatNum(dongia)}</td>
@@ -392,21 +444,26 @@ function applyFilters(resetPage) {
 
     const mobileContainer = document.getElementById('nxMobileCards');
     if (mobileContainer) {
-        mobileContainer.innerHTML = pageRows.map(row => `
-            <div class="mobile-card">
-                <div class="flex justify-between items-start mb-3 border-b border-slate-50 pb-2">
-                    <div class="font-bold text-slate-800 text-sm">${row[3] || 'No ID'}</div>
-                    <div class="text-[10px] font-bold px-2 py-0.5 rounded-full ${row[2] === 'NHẬP' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}">${row[2]}</div>
+        mobileContainer.innerHTML = pageRows.map(row => {
+            const trClass = row[2] === 'NHẬP' ? 'bg-blue-50 text-blue-600' : (row[2] === 'XUẤT' ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-700');
+            return `
+                <div class="mobile-card">
+                    <div class="flex justify-between items-start mb-3 border-b border-slate-50 pb-2">
+                        <div class="font-bold text-slate-800 text-sm">${row[3] || 'No ID'}</div>
+                        <div class="text-[10px] font-bold px-2 py-0.5 rounded-full ${trClass}">${row[2]}</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span class="mobile-card-label">Ngày</span><span class="mobile-card-value">${row[1] || ''}</span></div>
+                        <div class="flex justify-between"><span class="mobile-card-label">Khách hàng</span><span class="mobile-card-value text-slate-900 font-medium">${row[5] || ''}</span></div>
+                        <div class="flex justify-between"><span class="mobile-card-label">ID SP</span><span class="mobile-card-value font-mono font-bold text-slate-400">${row[6] || ''}</span></div>
+                        <div class="flex justify-between"><span class="mobile-card-label">Sản phẩm</span><span class="mobile-card-value text-slate-600">${row[7] || ''}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="mobile-card-label">SL - Đơn giá</span><span class="mobile-card-value">${row[8]} x ${formatNum(row[9])}</span></div>
+                        <div class="flex justify-between pt-1 border-t border-slate-50"><span class="mobile-card-label">Thành tiền</span><span class="text-sm font-bold text-emerald-600">${formatNum(row[10])}</span></div>
+                        <div class="flex justify-between"><span class="mobile-card-label">Nhân viên</span><span class="mobile-card-value text-slate-400">${row[11] || ''}</span></div>
+                    </div>
                 </div>
-                <div class="space-y-2">
-                    <div class="flex justify-between"><span class="mobile-card-label">Ngày</span><span class="mobile-card-value">${row[1] || ''}</span></div>
-                    <div class="flex justify-between"><span class="mobile-card-label">Khách hàng</span><span class="mobile-card-value">${row[5] || ''}</span></div>
-                    <div class="flex justify-between"><span class="mobile-card-label">Sản phẩm</span><span class="mobile-card-value">${row[7] || ''}</span></div>
-                    <div class="flex justify-between items-baseline"><span class="mobile-card-label">SL - Đơn giá</span><span class="mobile-card-value">${row[8]} x ${formatNum(row[9])}</span></div>
-                    <div class="flex justify-between pt-1 border-t border-slate-50"><span class="mobile-card-label">Thành tiền</span><span class="text-sm font-bold text-emerald-600">${formatNum(row[10])}</span></div>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 }
 
@@ -580,9 +637,10 @@ function applyTonKhoFilters(resetPage) {
             const idSp = (row[6] || '').toString();
             const type = (row[2] || '').toString();
             const slg = Number(row[8] || 0);
-            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0 };
+            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0, traLai: 0 };
             if (type === 'NHẬP') nxAgg[idSp].nhap += slg;
             if (type === 'XUẤT') nxAgg[idSp].xuat += slg;
+            if (type === 'HÀNG TRẢ LẠI') nxAgg[idSp].traLai += slg;
         });
     }
 
@@ -624,9 +682,9 @@ function applyTonKhoFilters(resetPage) {
     }).map(row => {
         const id = (row[0] || '').toString();
         const tondau = Number(row[6] || 0);
-        const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
+        const agg = nxAgg[id] || { nhap: 0, xuat: 0, traLai: 0 };
         const tamgiu = giuAgg[id] || 0;
-        const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
+        const cotheban = tondau + agg.nhap + agg.traLai - agg.xuat - tamgiu;
         return { row, id, agg, tamgiu, cotheban };
     });
 
@@ -662,6 +720,7 @@ function applyTonKhoFilters(resetPage) {
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Model</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Tồn đầu</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Nhập</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Trả lại</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Xuất</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Tạm giữ</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Có thể bán</th>
@@ -693,10 +752,11 @@ function applyTonKhoFilters(resetPage) {
                 <td class="px-4 py-3 text-xs text-slate-500 italic">${model}</td>
                 <td class="px-4 py-3 text-xs text-right text-slate-600">${formatNum(tondau)}</td>
                 <td class="px-4 py-3 text-xs text-right text-blue-600 font-medium">${formatNum(item.agg.nhap)}</td>
+                <td class="px-4 py-3 text-xs text-right text-emerald-600 font-medium">${formatNum(item.agg.traLai)}</td>
                 <td class="px-4 py-3 text-xs text-right text-orange-600 font-medium">${formatNum(item.agg.xuat)}</td>
                 <td class="px-4 py-3 text-xs text-right text-slate-400 font-bold">${formatNum(item.tamgiu)}</td>
                 <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(item.cotheban)}</td>
-                <td class="px-4 py-3 text-xs text-right text-slate-700 font-bold">${formatNum(tonHT)}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-700 font-bold">${formatNum(tondau + item.agg.nhap + item.agg.traLai - item.agg.xuat)}</td>
             </tr>
         `;
     }).join('');
@@ -730,8 +790,9 @@ function applyTonKhoFilters(resetPage) {
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                         <div class="bg-slate-50 p-2 rounded-lg"><div class="mobile-card-label">Tồn đầu</div><div class="font-bold">${formatNum(tondau)}</div></div>
                         <div class="bg-blue-50 p-2 rounded-lg"><div class="mobile-card-label text-blue-600">Nhập</div><div class="font-bold text-blue-600">${formatNum(item.agg.nhap)}</div></div>
+                        <div class="bg-emerald-50 p-2 rounded-lg"><div class="mobile-card-label text-emerald-600">Trả lại</div><div class="font-bold text-emerald-600">${formatNum(item.agg.traLai)}</div></div>
                         <div class="bg-orange-50 p-2 rounded-lg"><div class="mobile-card-label text-orange-600">Xuất</div><div class="font-bold text-orange-600">${formatNum(item.agg.xuat)}</div></div>
-                        <div class="bg-emerald-50 p-2 rounded-lg"><div class="mobile-card-label text-emerald-600">Có thể bán</div><div class="font-bold text-emerald-600">${formatNum(item.cotheban)}</div></div>
+                        <div class="col-span-2 bg-emerald-100 p-2 rounded-lg flex justify-between items-center"><div class="mobile-card-label text-emerald-800 font-bold">Có thể bán</div><div class="font-bold text-emerald-800 text-sm">${formatNum(item.cotheban)}</div></div>
                     </div>
                 </div>
             `;
@@ -1146,12 +1207,12 @@ function updateDashboardFilterOptions() {
         const maKh = (r[iMaKh !== -1 ? iMaKh : 4] || '').toString().trim();
         const tenKh = (r[iKhach !== -1 ? iKhach : 5] || '').toString().trim();
         if (maKh && tenKh) customers.add(`${maKh} - ${tenKh}`);
-        else if (maKh) customers.add(maKh);
+        else if (maKh || tenKh) customers.add(maKh || tenKh);
 
         const idNv = (r[iIdNv !== -1 ? iIdNv : 11] || '').toString().trim();
-        const tenNv = (r[iNv !== -1 ? iNv : 6] || '').toString().trim();
+        const tenNv = (r[iNv !== -1 ? iNv : 12] || '').toString().trim();
         if (idNv && tenNv) employees.add(`${idNv} - ${tenNv}`);
-        else if (idNv) employees.add(idNv);
+        else if (idNv || tenNv) employees.add(idNv || tenNv);
     });
 
     const populate = (id, items) => {
@@ -1233,7 +1294,7 @@ function renderDashboard() {
         const rIdSp = (r[iIdSp !== -1 ? iIdSp : 6] || '').toString().toLowerCase();
         const rTenSp = (r[iTenSp !== -1 ? iTenSp : 7] || '').toString().toLowerCase();
         const rIdNv = (r[iIdNv !== -1 ? iIdNv : 11] || '').toString().toLowerCase();
-        const rTenNv = (r[iNv !== -1 ? iNv : 6] || '').toString().toLowerCase();
+        const rTenNv = (r[iNv !== -1 ? iNv : 12] || '').toString().toLowerCase();
 
         if (fFrom && rDateObj < fFrom) return;
         if (fTo && rDateObj > fTo) return;
@@ -1241,7 +1302,12 @@ function renderDashboard() {
         // Robust Filter (Mã hoặc Tên)
         const checkMatch = (val, id, name) => {
             if (!val) return true;
-            return id.includes(val) || name.includes(val) || val.includes(id);
+            const v = val.toLowerCase();
+            const i = (id || '').toString().toLowerCase();
+            const n = (name || '').toString().toLowerCase();
+            const matchI = i && (v.includes(i) || i.includes(v));
+            const matchN = n && (v.includes(n) || n.includes(v));
+            return matchI || matchN;
         };
 
         if (!checkMatch(filterIdSp, rIdSp, rTenSp)) return;
@@ -1278,52 +1344,34 @@ function renderDashboard() {
         </tr>
     `).join('');
 
-    const topNhap = [...aggList].sort((a, b) => b.nhap - a.nhap).slice(0, 10).filter(i => i.nhap > 0);
-    const topXuat = [...aggList].sort((a, b) => b.xuat - a.xuat).slice(0, 10).filter(i => i.xuat > 0);
+    const topNhap = [...aggList].sort((a, b) => b.nhap - a.nhap).filter(i => i.nhap > 0);
+    const topXuat = [...aggList].sort((a, b) => b.xuat - a.xuat).filter(i => i.xuat > 0);
 
-    renderChart('importChart', topNhap, 'nhap', 'Top Nhập', '#3b82f6', 'bar', importChartObj, (obj) => importChartObj = obj);
-    renderChart('exportChart', topXuat, 'xuat', 'Top Xuất', '#f97316', 'bar', exportChartObj, (obj) => exportChartObj = obj);
-    renderChart('dailyImportChart', dailyList, 'nhap', 'Nhập Số Lượng', '#60a5fa', 'line', dailyImportChartObj, (obj) => dailyImportChartObj = obj);
-    renderChart('dailyExportChart', dailyList, 'xuat', 'Xuất Số Lượng', '#fb923c', 'line', dailyExportChartObj, (obj) => dailyExportChartObj = obj);
+    const populateSubTable = (tbodyId, data, isDate, key) => {
+        const tb = document.getElementById(tbodyId);
+        if (!tb) return;
+        tb.innerHTML = data.map(item => `
+            <tr class="hover:bg-slate-50 transition-colors">
+                ${isDate ? `
+                    <td class="py-2.5 text-slate-600 font-medium text-sm">${item.date}</td>
+                    <td class="py-2.5 text-right font-bold text-slate-800 text-sm">${formatNum(item[key])}</td>
+                ` : `
+                    <td class="py-2.5 text-slate-400 font-mono text-[10px] uppercase">${item.id}</td>
+                    <td class="py-2.5 text-slate-700 font-semibold text-sm truncate max-w-[150px]" title="${item.name}">${item.name}</td>
+                    <td class="py-2.5 text-right font-bold text-slate-800 text-sm">${formatNum(item[key])}</td>
+                `}
+            </tr>
+        `).join('');
+    };
+
+    populateSubTable('importTableBody', topNhap, false, 'nhap');
+    populateSubTable('exportTableBody', topXuat, false, 'xuat');
+    populateSubTable('dailyImportTableBody', dailyList.filter(d => d.nhap > 0).reverse(), true, 'nhap');
+    populateSubTable('dailyExportTableBody', dailyList.filter(d => d.xuat > 0).reverse(), true, 'xuat');
+
     renderInventoryAnalytics();
 }
 
-function renderChart(canvasId, data, key, label, color, type, existingChart, setChart) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    if (existingChart) existingChart.destroy();
-
-    const chartLabels = type === 'bar' ? data.map(i => i.id) : data.map(i => i.date);
-
-    const newChart = new Chart(ctx, {
-        type: type,
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: label,
-                data: data.map(i => i[key]),
-                backgroundColor: color + '33',
-                borderColor: color,
-                borderWidth: 2,
-                borderRadius: type === 'bar' ? 6 : 0,
-                tension: 0.3,
-                fill: type === 'line'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: '#1e293b', padding: 12, cornerRadius: 8 }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                y: { grid: { display: false }, ticks: { font: { size: 9 } } }
-            }
-        }
-    });
-    setChart(newChart);
-}
 
 // ─── Inventory Analytics ──────────────────────────────────────
 function renderInventoryAnalytics(resetPage) {
@@ -1373,7 +1421,7 @@ function renderInventoryAnalytics(resetPage) {
             const isThisMonth = (d.getMonth() === thisMonth && d.getFullYear() === thisYear);
             const isPrevMonth = (d.getMonth() === prevMonth && d.getFullYear() === prevYear);
 
-            if (type === 'NHẬP') {
+            if (type === 'NHẬP' || type === 'HÀNG TRẢ LẠI') {
                 nxByIdAll[id].nhap_all += slg;
                 if (isThisMonth) nxByIdAll[id].nhap_this += slg;
                 if (isPrevMonth) nxByIdAll[id].nhap_prev += slg;
@@ -1590,9 +1638,10 @@ function checkStockAndNotify() {
             const idSp = (row[6] || '').toString();
             const type = (row[2] || '').toString();
             const slg = Number(row[8] || 0);
-            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0 };
+            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0, traLai: 0 };
             if (type === 'NHẬP') nxAgg[idSp].nhap += slg;
             if (type === 'XUẤT') nxAgg[idSp].xuat += slg;
+            if (type === 'HÀNG TRẢ LẠI') nxAgg[idSp].traLai += slg;
         });
     }
     const giuAgg = {};

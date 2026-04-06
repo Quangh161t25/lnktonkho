@@ -146,41 +146,53 @@
     </div>
     <div id="mainApp" class="hidden h-screen flex bg-white text-slate-900 pb-16 md:pb-0">
         <!-- Bottom Nav (Mobile Only) -->
-        <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-16 z-50 md:hidden pb-safe">
-            <button onclick="switchModule('home')" id="bottom-nav-home" class="flex flex-col items-center justify-center w-full h-full text-blue-600 transition-all">
+        <nav id="bottomNav"
+            class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-16 z-50 md:hidden pb-safe">
+            <button onclick="switchModule('home')" id="bottom-nav-home"
+                class="flex flex-col items-center justify-center w-full h-full text-blue-600 transition-all">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
             </button>
-            <button onclick="switchModule('nhapxuat')" id="bottom-nav-nhapxuat" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <button onclick="switchModule('nhapxuat')" id="bottom-nav-nhapxuat"
+                class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a1 1 0 00-1-1H7a1 1 0 00-1 1v2a1 1 0 001 1h1a1 1 0 001-1zm3 0v-5a1 1 0 00-1-1h-1a1 1 0 00-1 1v5a1 1 0 001 1h1a1 1 0 001-1zm3 0v-8a1 1 0 00-1-1h-1a1 1 0 00-1 1v8a1 1 0 001 1h1a1 1 0 001-1zM17 17a1 1 0 102 0c0-1.657-1.343-3-3-3s-3 1.343-3 3h4z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17v-2a1 1 0 00-1-1H7a1 1 0 00-1 1v2a1 1 0 001 1h1a1 1 0 001-1zm3 0v-5a1 1 0 00-1-1h-1a1 1 0 00-1 1v5a1 1 0 001 1h1a1 1 0 001-1zm3 0v-8a1 1 0 00-1-1h-1a1 1 0 00-1 1v8a1 1 0 001 1h1a1 1 0 001-1zM17 17a1 1 0 102 0c0-1.657-1.343-3-3-3s-3 1.343-3 3h4z" />
                 </svg>
             </button>
-            <button onclick="switchModule('tonkho')" id="bottom-nav-tonkho" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <button onclick="switchModule('tonkho')" id="bottom-nav-tonkho"
+                class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                 </svg>
             </button>
-            <button onclick="switchModule('giuhang')" id="bottom-nav-giuhang" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <button onclick="switchModule('giuhang')" id="bottom-nav-giuhang"
+                class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
             </button>
-            <button onclick="switchModule('dashboard')" id="bottom-nav-dashboard" class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <button onclick="switchModule('dashboard')" id="bottom-nav-dashboard"
+                class="flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </button>
         </nav>
         <!-- Sidebar -->
-        <aside id="sidebar" class="bg-white border-r border-slate-200 flex flex-col h-full z-40 shrink-0 overflow-hidden transition-all duration-300 hidden md:flex">
+        <aside id="sidebar"
+            class="bg-white border-r border-slate-200 flex flex-col h-full z-40 shrink-0 overflow-hidden transition-all duration-300 hidden md:flex">
             <div class="h-16 flex items-center justify-between px-4 shrink-0 border-b border-slate-100">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="sidebar-logo-container">
                         <img src="logo.png" alt="VG Logo" class="w-full h-full object-contain rounded-lg">
                     </div>
-                    <span class="sidebar-text font-bold text-slate-800 text-lg">Lộc Kink ERP</span>
+                    <span class="sidebar-text font-bold text-slate-800 text-lg"></span>
                 </div>
                 <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-50 rounded-lg text-slate-500 transition">
                     <svg id="toggleIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,7 +242,8 @@
             </nav>
             <div class="p-4 border-t border-slate-100 flex flex-col items-center gap-2">
                 <span class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">Version 3.0</span>
-                <button onclick="location.reload(true)" class="text-[9px] text-blue-500 hover:underline">Làm mới trình duyệt</button>
+                <button onclick="location.reload(true)" class="text-[9px] text-blue-500 hover:underline">Làm mới trình
+                    duyệt</button>
             </div>
         </aside>
 
@@ -244,25 +257,18 @@
 
                 <div class="flex items-center gap-3">
                     <!-- Stock Notification Toggle -->
-                    <button id="stockNotiBtn" onclick="toggleStockNotifications()" 
-                        class="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition relative group" 
+                    <button id="stockNotiBtn" onclick="toggleStockNotifications()"
+                        class="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition relative group"
                         title="Bật/Tắt chuông báo hết hàng">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <div id="notiStatusDot" class="absolute top-2 right-2 w-2 h-2 bg-slate-300 rounded-full border-2 border-white hidden"></div>
-                    </button>
-
-                    <!-- Original Notifications -->
-                    <button class="relative p-2 text-slate-500 hover:bg-slate-50 rounded-full transition">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span
-                            class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">4</span>
+                        <div id="notiStatusDot"
+                            class="absolute top-2 right-2 w-2 h-2 bg-slate-300 rounded-full border-2 border-white hidden">
+                        </div>
                     </button>
+
 
                     <!-- User Profile Trigger -->
                     <div class="relative">
@@ -331,11 +337,60 @@
             </header>
             <main class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
                 <!-- Module: Home -->
-                <div id="module-home" class="max-w-4xl mx-auto py-10">
-                    <div class="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm text-center">
-                        <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại!</h2>
-                        <p class="text-slate-500">Hệ thống đang hoạt động ổn định. Bạn có thể bắt đầu làm việc ngay bây
-                            giờ.</p>
+                <div id="module-home" class="max-w-5xl mx-auto py-10 px-6">
+                    <div class="mb-10 text-center">
+                        <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Chào mừng trở lại!</h2>
+                        <p class="text-slate-500">Hệ thống đang hoạt động ổn định. Chọn một chức năng để bắt đầu.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Card: Nhập Xuất -->
+                        <div id="home-card-nhapxuat" onclick="switchModule('nhapxuat')"
+                            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Nhập xuất chi tiết</h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">Quản lý đơn hàng nhập và xuất kho theo thời gian thực.</p>
+                        </div>
+
+                        <!-- Card: Tồn Kho -->
+                        <div id="home-card-tonkho" onclick="switchModule('tonkho')"
+                            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Báo cáo tồn kho</h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">Kiểm tra số lượng tồn, hàng có thể bán và cảnh báo kho.</p>
+                        </div>
+
+                        <!-- Card: Giữ Hàng -->
+                        <div id="home-card-giuhang" onclick="switchModule('giuhang')"
+                            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Quản lý giữ hàng</h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">Theo dõi và cập nhật trạng thái các sản phẩm đang tạm giữ.</p>
+                        </div>
+
+                        <!-- Card: Dashboard -->
+                        <div id="home-card-dashboard" onclick="switchModule('dashboard')"
+                            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Báo cáo & Phân tích</h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">Phân tích chuyên sâu về tăng trưởng và hiệu suất kho hàng.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -356,28 +411,54 @@
                                     placeholder="Tìm mã đơn, tên khách..."
                                     class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
+                            <div class="relative flex-1 max-w-[150px]">
+                                <input type="text" id="nxSearchIdSp" oninput="applyFilters(true)"
+                                    placeholder="Tìm mã SP..."
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            </div>
+                            <div class="relative flex-1 max-w-[200px]">
+                                <input type="text" id="nxSearchTenSp" oninput="applyFilters(true)"
+                                    placeholder="Tìm tên SP..."
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            </div>
                             <select id="nxTypeFilter" onchange="applyFilters(true)"
-                                class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition">
+                                class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition min-w-[120px]">
                                 <option value="">Tất cả loại đơn</option>
                                 <option value="NHẬP">NHẬP</option>
                                 <option value="XUẤT">XUẤT</option>
+                                <option value="HÀNG TRẢ LẠI">TRẢ LẠI</option>
                             </select>
+                            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 px-2 uppercase">Từ</span>
+                                <input type="date" id="nxDateFrom" onchange="applyFilters(true)"
+                                    class="bg-transparent border-none text-xs focus:ring-0 p-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Tới</span>
+                                <input type="date" id="nxDateTo" onchange="applyFilters(true)"
+                                    class="bg-transparent border-none text-xs focus:ring-0 p-1">
+                            </div>
+                            <div class="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl flex items-center gap-3">
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Tổng tiền</span>
+                                <span id="nxTotalAmount" class="text-sm font-bold text-emerald-700">0</span>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <!-- Hidden File Input for Excel Upload -->
-                            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(this)">
-                            
-                            <button onclick="triggerUpload('NHẬP')" 
+                            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" class="hidden"
+                                onchange="handleFileSelect(this)">
+
+                            <button id="btnUploadNhap" onclick="triggerUpload('NHẬP')"
                                 class="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-bold hover:bg-blue-100 transition border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
                                 </svg>
                                 <span>Tải lên NHẬP</span>
                             </button>
-                            <button onclick="triggerUpload('XUẤT')" 
+                            <button id="btnUploadXuat" onclick="triggerUpload('XUẤT')"
                                 class="flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-xl text-[11px] font-bold hover:bg-orange-100 transition border border-orange-100">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
                                 </svg>
                                 <span>Tải lên XUẤT</span>
                             </button>
@@ -399,24 +480,29 @@
 
                     <div class="flex-1 overflow-auto p-6">
                         <!-- Desktop View: Table -->
-                        <div class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                        <div
+                            class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                         <tr>
                                             <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ngày</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Trường</th>
+                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Trường</th>
                                             <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Mã đơn</th>
                                             <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Khách hàng</th>
+                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ID SP</th>
                                             <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên SP</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Số lượng</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Đơn giá</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thành tiền</th>
+                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Số lượng</th>
+                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Đơn giá</th>
+                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Thành tiền</th>
                                             <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nhân viên</th>
                                         </tr>
                                     </thead>
                                     <tbody id="nxTableBody" class="divide-y divide-slate-100">
-                                        <tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Đang tải...</td></tr>
+                                        <tr>
+                                            <td colspan="9" class="px-4 py-10 text-center text-slate-400">Đang tải...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -466,23 +552,46 @@
 
                     <div class="flex-1 overflow-auto p-6">
                         <!-- Desktop View: Table -->
-                        <div class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                        <div
+                            class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                         <tr>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên SP</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Model</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tồn đầu</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nhập</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Xuất</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tạm giữ</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Có thể bán</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tồn cuối</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tên SP</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Model</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tồn đầu</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Nhập</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Trả lại</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Xuất</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tạm giữ</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Có thể bán</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tồn cuối</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tonKhoTableBody" class="divide-y divide-slate-100">
-                                        <tr><td colspan="8" class="px-4 py-10 text-center text-slate-400">Đang tải...</td></tr>
+                                        <tr>
+                                            <td colspan="8" class="px-4 py-10 text-center text-slate-400">Đang tải...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -547,20 +656,34 @@
 
                     <div class="flex-1 overflow-auto p-6">
                         <!-- Desktop View: Table -->
-                        <div class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                        <div
+                            class="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                         <tr>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên Nhân Viên</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Mã SP</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên Sản Phẩm</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Số lượng</th>
-                                            <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Thao tác</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tên Nhân Viên</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+                                                Mã SP</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                Tên Sản Phẩm</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
+                                                Số lượng</th>
+                                            <th
+                                                class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+                                                Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody id="giuHangTableBody" class="divide-y divide-slate-100">
-                                        <tr><td colspan="5" class="px-4 py-10 text-center text-slate-400">Đang tải...</td></tr>
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-10 text-center text-slate-400">Đang tải...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -578,30 +701,46 @@
                             <!-- Date Range with +/- -->
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
-                                    <button onclick="changeDate('dbFromDate', -1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
-                                    <input type="date" id="dbFromDate" onchange="renderDashboard()" class="bg-transparent border-none text-xs outline-none px-1">
-                                    <button onclick="changeDate('dbFromDate', 1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                    <button onclick="changeDate('dbFromDate', -1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbFromDate" onchange="renderDashboard()"
+                                        class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbFromDate', 1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
                                 </div>
                                 <span class="text-slate-300">→</span>
                                 <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
-                                    <button onclick="changeDate('dbToDate', -1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
-                                    <input type="date" id="dbToDate" onchange="renderDashboard()" class="bg-transparent border-none text-xs outline-none px-1">
-                                    <button onclick="changeDate('dbToDate', 1)" class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                    <button onclick="changeDate('dbToDate', -1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbToDate" onchange="renderDashboard()"
+                                        class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbToDate', 1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
                                 </div>
                             </div>
 
                             <!-- Quick Select -->
                             <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-                                <button onclick="setQuickDate('today')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Hôm nay</button>
-                                <button onclick="setQuickDate('week')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tuần này</button>
-                                <button onclick="setQuickDate('month')" class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tháng này</button>
+                                <button onclick="setQuickDate('today')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Hôm
+                                    nay</button>
+                                <button onclick="setQuickDate('week')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tuần
+                                    này</button>
+                                <button onclick="setQuickDate('month')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tháng
+                                    này</button>
                             </div>
 
                             <!-- Type Buttons -->
                             <div id="dbTypeButtons" class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-                                <button onclick="setDbType('')" id="btn-type-all" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg bg-white shadow-sm transition active-type">Tất cả</button>
-                                <button onclick="setDbType('NHẬP')" id="btn-type-nhap" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Nhập</button>
-                                <button onclick="setDbType('XUẤT')" id="btn-type-xuat" class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Xuất</button>
+                                <button onclick="setDbType('')" id="btn-type-all"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg bg-white shadow-sm transition active-type">Tất
+                                    cả</button>
+                                <button onclick="setDbType('NHẬP')" id="btn-type-nhap"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Nhập</button>
+                                <button onclick="setDbType('XUẤT')" id="btn-type-xuat"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Xuất</button>
                                 <input type="hidden" id="dbTruong" value="">
                             </div>
                         </div>
@@ -609,21 +748,30 @@
                         <div class="flex flex-wrap items-center gap-4">
                             <!-- Advanced Inputs with Datalists -->
                             <div class="relative flex-1 min-w-[150px]">
-                                <input type="text" id="dbIdSp" oninput="renderDashboard()" list="dl-products" placeholder="Mã hoặc Tên SP..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <input type="text" id="dbIdSp" oninput="renderDashboard()" list="dl-products"
+                                    placeholder="Mã hoặc Tên SP..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 <datalist id="dl-products"></datalist>
                             </div>
                             <div class="relative flex-1 min-w-[120px]">
-                                <input type="text" id="dbMaKh" oninput="renderDashboard()" list="dl-customers" placeholder="Mã KH..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <input type="text" id="dbMaKh" oninput="renderDashboard()" list="dl-customers"
+                                    placeholder="Mã KH..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 <datalist id="dl-customers"></datalist>
                             </div>
                             <div class="relative flex-1 min-w-[120px]">
-                                <input type="text" id="dbIdNv" oninput="renderDashboard()" list="dl-employees" placeholder="ID NV..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <input type="text" id="dbIdNv" oninput="renderDashboard()" list="dl-employees"
+                                    placeholder="ID NV..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 <datalist id="dl-employees"></datalist>
                             </div>
 
-                            <button onclick="refreshDashboard()" class="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition" title="Làm mới báo cáo">
+                            <button onclick="refreshDashboard()"
+                                class="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
+                                title="Làm mới báo cáo">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                             </button>
                         </div>
@@ -634,23 +782,45 @@
                             <div
                                 class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
                                 <h4
-                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                    Top 10 Nhập (Theo SP)
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        Sản phẩm Nhập
+                                    </div>
                                 </h4>
-                                <div class="flex-1 min-h-0 relative">
-                                    <canvas id="importChart"></canvas>
+                                <div id="importTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Mã SP</th>
+                                                <th class="py-2">Tên SP</th>
+                                                <th class="py-2 text-right">SL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="importTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
                                 </div>
                             </div>
                             <div
                                 class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
                                 <h4
-                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                                    Top 10 Xuất (Theo SP)
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                        Sản phẩm Xuất
+                                    </div>
                                 </h4>
-                                <div class="flex-1 min-h-0 relative">
-                                    <canvas id="exportChart"></canvas>
+                                <div id="exportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Mã SP</th>
+                                                <th class="py-2">Tên SP</th>
+                                                <th class="py-2 text-right">SL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
                                 </div>
                             </div>
                             <!-- Daily Trends -->
@@ -661,8 +831,16 @@
                                     <span class="w-2 h-2 rounded-full bg-blue-400"></span>
                                     Nhập Theo Ngày
                                 </h4>
-                                <div class="flex-1 min-h-0 relative">
-                                    <canvas id="dailyImportChart"></canvas>
+                                <div id="dailyImportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Ngày</th>
+                                                <th class="py-2 text-right">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dailyImportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
                                 </div>
                             </div>
                             <div
@@ -672,8 +850,16 @@
                                     <span class="w-2 h-2 rounded-full bg-orange-400"></span>
                                     Xuất Theo Ngày
                                 </h4>
-                                <div class="flex-1 min-h-0 relative">
-                                    <canvas id="dailyExportChart"></canvas>
+                                <div id="dailyExportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Ngày</th>
+                                                <th class="py-2 text-right">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dailyExportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -695,7 +881,7 @@
                                         <tr>
                                             <th class="px-6 py-4">ID_SP</th>
                                             <th class="px-6 py-4">Sản Phẩm</th>
-                                            <th class="px-6 py-4 text-right text-blue-500">Nhập</th>
+                                            <th class="px-6 py-4 text-right text-blue-500">Nhập + Trả lại</th>
                                             <th class="px-6 py-4 text-right text-orange-500">Xuất</th>
                                         </tr>
                                     </thead>
@@ -728,7 +914,7 @@
                                             <th class="px-4 py-3">Tên SP</th>
                                             <th class="px-4 py-3">Model</th>
                                             <th class="px-4 py-3 text-right">Tồn đầu</th>
-                                            <th class="px-4 py-3 text-right text-blue-500">Nhập</th>
+                                            <th class="px-4 py-3 text-right text-blue-500">Nhập + Trả lại</th>
                                             <th class="px-4 py-3 text-right text-orange-500">Xuất</th>
                                             <th class="px-4 py-3 text-right text-emerald-600 font-bold">Tồn HT</th>
                                             <th class="px-4 py-3 text-center"
