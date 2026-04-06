@@ -73,7 +73,7 @@ async function fetchAuthData() {
         const token = await getAccessToken();
         const sid = CONFIG.spreadsheetId;
         const sname = CONFIG.authSheetName;
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${sname}!A1:Z200`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${sname}!A1:M200`;
 
         const resp = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
         const data = await resp.json();
@@ -178,7 +178,7 @@ function updateUserProfileUI() {
         const navEl = document.getElementById(`nav-${m}`);
         const bNavEl = document.getElementById(`bottom-nav-${m}`);
         const isAllowed = allowed.includes(m);
-        
+
         if (navEl) {
             if (isAllowed) navEl.classList.remove('hidden');
             else navEl.classList.add('hidden');
@@ -209,7 +209,7 @@ function switchModule(moduleName) {
     ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'].forEach(m => {
         const mod = document.getElementById(`module-${m}`);
         if (mod) mod.classList.add('hidden');
-        
+
         const navEl = document.getElementById(`nav-${m}`);
         const bottomNavEl = document.getElementById(`bottom-nav-${m}`);
         if (navEl) navEl.classList.remove('active');
@@ -262,7 +262,7 @@ function switchModule(moduleName) {
 async function fetchNXData() {
     try {
         const token = await getAccessToken();
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.nxSheetName}!A1:Z1000`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.nxSheetName}!A1:M60000`;
         const resp = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
         const data = await resp.json();
         nxDataRaw = data.values || [];
@@ -368,6 +368,124 @@ function applyFilters() {
     }
 }
 
+// ─── Excel Upload Logic ────────────────────────────────────────
+let currentUploadType = '';
+
+function triggerUpload(type) {
+    currentUploadType = type;
+    document.getElementById('excelUploadInput').click();
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            processWorkbook(workbook, currentUploadType);
+        } catch (err) {
+            console.error("Parse Error:", err);
+            alert("Lỗi khi đọc file Excel. Vui lòng kiểm tra định dạng.");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+    input.value = ''; // Reset for next selection
+}
+
+async function processWorkbook(workbook, type) {
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    // Convert to array of arrays (header:1 returns array for rows)
+    const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    if (rawRows.length <= 1) {
+        alert("File không có dữ liệu hoặc chỉ có tiêu đề.");
+        return;
+    }
+
+    const rowsToUpload = [];
+    // Start from row 4 (index 3) and skip the last row (length - 1)
+    for (let i = 3; i < rawRows.length - 1; i++) {
+        const r = rawRows[i];
+        if (!r || r.length === 0) continue;
+
+        let mappedRow = new Array(13).fill("");
+
+        // COMMON: Ngay (B=1 -> GS 1), Truong (GS 2), Mã đơn (C=2 -> GS 3)
+        mappedRow[1] = r[1] || ""; // Excel Col B
+        mappedRow[2] = type;       // "NHẬP" or "XUẤT"
+        mappedRow[3] = r[2] || ""; // Excel Col C (Mã đơn)
+
+        if (type === 'NHẬP') {
+            // Import Mapping: F=5 (6th), G=6 (7th), I=8 (9th), J=9 (10th), K=10 (11th)
+            mappedRow[4] = "";           // Ma KH (Excel n/a)
+            mappedRow[5] = "";           // Ten KH (Excel n/a)
+            mappedRow[6] = r[5] || "";   // ID SP (Excel F)
+            mappedRow[7] = r[6] || "";   // Tên SP (Excel G)
+            mappedRow[8] = r[8] || "";   // Số lượng (Excel I)
+            mappedRow[9] = r[9] || "";   // Đơn giá (Excel J)
+            mappedRow[10] = r[10] || ""; // Thành tiền (Excel K)
+        } else {
+            // Export Mapping: H=7 (8th), I=8 (9th), J=9 (10th), K=10 (11th), M=12 (13th), N=13 (14th), O=14 (15th)
+            mappedRow[4] = r[7] || "";   // Ma KH (Excel H)
+            mappedRow[5] = r[8] || "";   // Ten KH (Excel I)
+            mappedRow[6] = r[9] || "";   // ID SP (Excel J)
+            mappedRow[7] = r[10] || "";  // Tên SP (Excel K)
+            mappedRow[8] = r[12] || "";  // Số lượng (Excel M)
+            mappedRow[9] = r[13] || "";  // Đơn giá (Excel N)
+            mappedRow[10] = r[14] || ""; // Thành tiền (Excel O)
+        }
+
+        // Metadata: id_nv (GS index 11) - Bỏ trống theo yêu cầu
+        mappedRow[11] = "";
+
+        rowsToUpload.push(mappedRow);
+    }
+
+    if (rowsToUpload.length === 0) {
+        alert("Không tìm thấy dữ liệu hợp lệ để tải lên.");
+        return;
+    }
+
+    if (confirm(`Bạn có chắc chắn muốn tải lên ${rowsToUpload.length} bản ghi ${type} không?`)) {
+        await appendNXData(rowsToUpload);
+    }
+}
+
+async function appendNXData(rows) {
+    try {
+        const token = await getAccessToken();
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.nxSheetName}!A1:append?valueInputOption=USER_ENTERED`;
+
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                values: rows
+            })
+        });
+
+        if (resp.ok) {
+            alert("Tải lên dữ liệu thành công!");
+            await fetchNXData(); // Refresh local cache
+            applyFilters();     // Refresh UI
+        } else {
+            const err = await resp.json();
+            console.error("Upload Error:", err);
+            alert("Lỗi khi tải lên Google Sheets. Vui lòng kiểm tra quyền truy cập.");
+        }
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        alert("Lỗi kết nối khi tải lên dữ liệu.");
+    }
+}
+
 // ─── Module: Tồn Kho ──────────────────────────────────────────
 async function fetchTonKhoData() {
     try {
@@ -436,15 +554,15 @@ function applyTonKhoFilters() {
         // NPP chỉ thấy SP mà họ đã từng XUẤT (Lọc theo cột ma_kh trong NX_CT)
         const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
         const iMaKH = nxHeaders.indexOf('ma_kh');
-        
+
         if (nxDataRaw && nxDataRaw.length > 1) {
             nxDataRaw.slice(1).forEach(row => {
                 const type = (row[2] || '').toString();
                 const rowMaKH = iMaKH !== -1 ? (row[iMaKH] || '').toString().trim() : '';
-                const spName = (row[7] || '').toString(); 
-                
+                const spName = (row[7] || '').toString();
+
                 if (type === 'XUẤT' && rowMaKH === currentUser.id) {
-                    allowedProductIds.add(spName); 
+                    allowedProductIds.add(spName);
                 }
             });
         }
@@ -575,7 +693,7 @@ function applyTonKhoFilters() {
 async function fetchGiuHangData() {
     try {
         const token = await getAccessToken();
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.giuHangSheetName}!A1:F1000`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.giuHangSheetName}!A1:F50`;
         const resp = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
         if (!resp.ok) {
             const errData = await resp.json();
@@ -911,7 +1029,7 @@ function setQuickDate(range) {
         // start = end = now
     } else if (range === 'week') {
         const day = now.getDay();
-        const diff = now.getDate() - day + (day === 0 ? -6 : 1); 
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
         start = new Date(now.setDate(diff));
         end = new Date();
     } else if (range === 'month') {
@@ -1062,7 +1180,7 @@ function renderDashboard() {
 
         if (fFrom && rDateObj < fFrom) return;
         if (fTo && rDateObj > fTo) return;
-        
+
         // Robust Filter (Mã hoặc Tên)
         const checkMatch = (val, id, name) => {
             if (!val) return true;
