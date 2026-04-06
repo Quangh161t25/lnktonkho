@@ -397,84 +397,74 @@
                 <!-- Module: Nhập Xuất -->
                 <div id="module-nhapxuat" class="hidden h-full flex flex-col">
                     <!-- Filter bar -->
-                    <div
-                        class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
-                        <div class="flex items-center gap-4 flex-1 min-w-[300px]">
-                            <div class="relative flex-1 max-w-sm">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <div class="bg-gray-50 border-b border-gray-200 shrink-0">
+                        <!-- Top Row: Title + Main Actions -->
+                        <div class="px-6 py-3 flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-gray-800 tracking-tight">Nhập xuất chi tiết</h2>
+                            <div class="flex items-center gap-3">
+                                <!-- Hidden File Input for Excel Upload -->
+                                <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(this)">
+
+                                <button id="btnUploadNhap" onclick="triggerUpload('NHẬP')" class="hidden flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 shadow-sm transition">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    </svg>
+                                    <span>Tải lên NHẬP</span>
+                                </button>
+                                <button id="btnUploadXuat" onclick="triggerUpload('XUẤT')" class="hidden flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-orange-600 shadow-sm transition">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    </svg>
+                                    <span>Tải lên XUẤT</span>
+                                </button>
+
+                                <div class="h-6 w-px bg-gray-300 mx-1"></div>
+                                <span id="nxCount" class="text-xs font-medium text-gray-600 bg-white px-3 py-1.5 rounded-md border border-gray-200 shadow-sm">0 đơn hàng</span>
+                                <div class="h-6 w-px bg-gray-300 mx-1"></div>
+
+                                <button onclick="renderNXModule()" class="p-2 text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition" title="Làm mới dữ liệu">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Row: Filters -->
+                        <div class="px-6 py-3 bg-white flex flex-wrap items-center gap-3 border-t border-gray-100">
+                            <div class="flex-1 min-w-[150px] relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </span>
-                                <input type="text" id="nxSearchInput" oninput="applyFilters(true)"
-                                    placeholder="Tìm mã đơn, tên khách..."
-                                    class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <input type="text" id="nxSearchInput" list="nxOrderCustomerList" oninput="applyFilters(true)" placeholder="Lọc Mã đơn, Khách hàng..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
+                                <datalist id="nxOrderCustomerList"></datalist>
                             </div>
-                            <div class="relative flex-1 max-w-[150px]">
-                                <input type="text" id="nxSearchIdSp" oninput="applyFilters(true)"
-                                    placeholder="Tìm mã SP..."
-                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            
+                            <div class="flex-1 min-w-[150px] relative">
+                                <input type="text" id="nxSearchProduct" list="nxProductList" oninput="applyFilters(true)" placeholder="Lọc Mã SP, Tên SP..." class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm">
+                                <datalist id="nxProductList"></datalist>
                             </div>
-                            <div class="relative flex-1 max-w-[200px]">
-                                <input type="text" id="nxSearchTenSp" oninput="applyFilters(true)"
-                                    placeholder="Tìm tên SP..."
-                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            </div>
-                            <select id="nxTypeFilter" onchange="applyFilters(true)"
-                                class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition min-w-[120px]">
+                            
+                            <select id="nxTypeFilter" onchange="applyFilters(true)" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition shadow-sm w-36">
                                 <option value="">Tất cả loại đơn</option>
                                 <option value="NHẬP">NHẬP</option>
                                 <option value="XUẤT">XUẤT</option>
                                 <option value="HÀNG TRẢ LẠI">TRẢ LẠI</option>
                             </select>
-                            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 px-2 uppercase">Từ</span>
-                                <input type="date" id="nxDateFrom" onchange="applyFilters(true)"
-                                    class="bg-transparent border-none text-xs focus:ring-0 p-1">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">Tới</span>
-                                <input type="date" id="nxDateTo" onchange="applyFilters(true)"
-                                    class="bg-transparent border-none text-xs focus:ring-0 p-1">
-                            </div>
-                            <div class="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl flex items-center gap-3">
-                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Tổng tiền</span>
-                                <span id="nxTotalAmount" class="text-sm font-bold text-emerald-700">0</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <!-- Hidden File Input for Excel Upload -->
-                            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" class="hidden"
-                                onchange="handleFileSelect(this)">
 
-                            <button id="btnUploadNhap" onclick="triggerUpload('NHẬP')"
-                                class="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-bold hover:bg-blue-100 transition border border-blue-100">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
-                                </svg>
-                                <span>Tải lên NHẬP</span>
-                            </button>
-                            <button id="btnUploadXuat" onclick="triggerUpload('XUẤT')"
-                                class="flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-xl text-[11px] font-bold hover:bg-orange-100 transition border border-orange-100">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
-                                </svg>
-                                <span>Tải lên XUẤT</span>
-                            </button>
-                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                            <button onclick="renderNXModule()"
-                                class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition"
-                                title="Làm mới dữ liệu">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            </button>
-                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                            <span id="nxCount"
-                                class="text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">0
-                                đơn hàng</span>
+                            <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                                <span class="text-xs font-medium text-gray-500">Từ</span>
+                                <input type="date" id="nxDateFrom" onchange="applyFilters(true)" class="bg-transparent border-none text-sm p-0 m-0 focus:ring-0 text-gray-700 w-[115px]">
+                                <span class="text-xs font-medium text-gray-500 ml-2">Đến</span>
+                                <input type="date" id="nxDateTo" onchange="applyFilters(true)" class="bg-transparent border-none text-sm p-0 m-0 focus:ring-0 text-gray-700 w-[115px]">
+                            </div>
+
+                            <div class="ml-auto bg-green-50 border border-green-200 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+                                <span class="text-xs font-medium text-green-700 uppercase tracking-tight">Tổng:</span>
+                                <span id="nxTotalAmount" class="text-base font-bold text-green-800">0</span>
+                            </div>
                         </div>
                     </div>
 

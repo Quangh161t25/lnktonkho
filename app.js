@@ -242,7 +242,8 @@ function updateUserProfileUI() {
 const ROLE_PERMISSIONS = {
     'ADMIN': ['home', 'nhapxuat', 'tonkho', 'giuhang', 'dashboard'],
     'kt': ['nhapxuat', 'tonkho', 'giuhang', 'dashboard'],
-    'NPP': ['tonkho', 'nhapxuat']
+    'NPP': ['tonkho', 'nhapxuat'],
+    'NVKD': ['tonkho', 'nhapxuat', 'giuhang']
 };
 
 function switchModule(moduleName) {
@@ -315,10 +316,51 @@ async function fetchNXData() {
         nxDataRaw = data.values || [];
         localStorage.setItem('erp_nx_cache', JSON.stringify(nxDataRaw));
         updateDashboardFilterOptions();
+        populateNXFilterDataLists(nxDataRaw);
         return nxDataRaw;
     } catch (err) {
         console.error("NX Data Fetch Error:", err);
         return [];
+    }
+}
+
+function populateNXFilterDataLists(data) {
+    if (!data || data.length <= 1) return;
+    const orderCustomerSet = new Set();
+    const productSet = new Set();
+
+    data.slice(1).forEach(row => {
+        const mdh = (row[3] || '').toString().trim();
+        const khach = (row[5] || '').toString().trim();
+        const idsp = (row[6] || '').toString().trim();
+        const tensp = (row[7] || '').toString().trim();
+
+        if (mdh) orderCustomerSet.add(mdh);
+        if (khach) orderCustomerSet.add(khach);
+        if (idsp || tensp) {
+            const combined = `${idsp}${idsp && tensp ? ' - ' : ''}${tensp}`;
+            productSet.add(combined);
+            if (idsp) productSet.add(idsp);
+            if (tensp) productSet.add(tensp);
+        }
+    });
+
+    const orderCustomerList = document.getElementById('nxOrderCustomerList');
+    if (orderCustomerList) {
+        orderCustomerList.innerHTML = Array.from(orderCustomerSet)
+            .filter(Boolean)
+            .sort()
+            .map(item => `<option value="${item}"></option>`)
+            .join('');
+    }
+
+    const productList = document.getElementById('nxProductList');
+    if (productList) {
+        productList.innerHTML = Array.from(productSet)
+            .filter(Boolean)
+            .sort()
+            .map(item => `<option value="${item}"></option>`)
+            .join('');
     }
 }
 
@@ -334,16 +376,18 @@ function applyFilters(resetPage) {
     if (!nxDataRaw || nxDataRaw.length <= 1) return;
 
     const searchTerm = document.getElementById('nxSearchInput').value.toLowerCase().trim();
-    const idSpSearch = document.getElementById('nxSearchIdSp').value.toLowerCase().trim();
-    const tenSpSearch = document.getElementById('nxSearchTenSp').value.toLowerCase().trim();
+    const productSearch = document.getElementById('nxSearchProduct').value.toLowerCase().trim();
     const typeFilter = document.getElementById('nxTypeFilter').value;
     const dateFrom = document.getElementById('nxDateFrom').value;
     const dateTo = document.getElementById('nxDateTo').value;
     const tbody = document.getElementById('nxTableBody');
 
     const isNPP = currentUser && currentUser.role === 'NPP';
+    const isNVKD = currentUser && currentUser.role === 'NVKD';
     const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
     const iMaKH = nxHeaders.indexOf('ma_kh');
+    const iIdNv = nxHeaders.findIndex(h => h === 'id_nv' || h === 'mã nv' || h === 'id nhân viên' || h === 'nhân viên');
+    const finalIIdNv = iIdNv !== -1 ? iIdNv : 11;
 
     const parseDateNX = (s) => {
         if (!s) return new Date(0);
@@ -357,6 +401,10 @@ function applyFilters(resetPage) {
             const rowMaKH = (row[iMaKH] || '').toString().trim();
             if (rowMaKH !== currentUser.id) return false;
         }
+        if (isNVKD) {
+            const rowIdNv = (row[finalIIdNv] || '').toString().trim();
+            if (rowIdNv !== currentUser.id) return false;
+        }
         const mdh = (row[3] || '').toString().toLowerCase();
         const khach = (row[5] || '').toString().toLowerCase();
         const idsp = (row[6] || '').toString().toLowerCase();
@@ -367,8 +415,8 @@ function applyFilters(resetPage) {
         if (!mdh && !tensp) return false;
 
         const matchesSearch = !searchTerm || mdh.includes(searchTerm) || khach.includes(searchTerm);
-        const matchesIdSp = !idSpSearch || idsp.includes(idSpSearch);
-        const matchesTenSp = !tenSpSearch || tensp.includes(tenSpSearch);
+        const combinedProductStr = `${idsp} - ${tensp}`;
+        const matchesProduct = !productSearch || idsp.includes(productSearch) || tensp.includes(productSearch) || combinedProductStr.includes(productSearch);
         const matchesType = !typeFilter || truong === typeFilter;
 
         // Date range filter
@@ -384,7 +432,7 @@ function applyFilters(resetPage) {
             if (rowDate > dTo) matchesDate = false;
         }
 
-        const isMatch = matchesSearch && matchesIdSp && matchesTenSp && matchesType && matchesDate;
+        const isMatch = matchesSearch && matchesProduct && matchesType && matchesDate;
         if (isMatch) {
             totalThanhTien += Number(row[10] || 0);
         }
@@ -1258,6 +1306,7 @@ function renderDashboard() {
     };
 
     const fFrom = fromDate ? new Date(fromDate) : null;
+    if (fFrom) fFrom.setHours(0, 0, 0, 0);
     const fTo = toDate ? new Date(toDate) : null;
     if (fTo) fTo.setHours(23, 59, 59, 999);
 
@@ -1323,7 +1372,7 @@ function renderDashboard() {
         if (rTruong === 'NHẬP') agg[id].nhap += slg;
         if (rTruong === 'XUẤT') agg[id].xuat += slg;
 
-        const dateKey = rDateObj.toISOString().split('T')[0];
+        const dateKey = `${rDateObj.getFullYear()}-${String(rDateObj.getMonth() + 1).padStart(2, '0')}-${String(rDateObj.getDate()).padStart(2, '0')}`;
         if (!dailyAgg[dateKey]) dailyAgg[dateKey] = { nhap: 0, xuat: 0 };
         if (rTruong === 'NHẬP') dailyAgg[dateKey].nhap += slg;
         if (rTruong === 'XUẤT') dailyAgg[dateKey].xuat += slg;
