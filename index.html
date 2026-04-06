@@ -352,11 +352,11 @@
                                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </span>
-                                <input type="text" id="nxSearchInput" oninput="applyFilters()"
+                                <input type="text" id="nxSearchInput" oninput="applyFilters(true)"
                                     placeholder="Tìm mã đơn, tên khách..."
                                     class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
-                            <select id="nxTypeFilter" onchange="applyFilters()"
+                            <select id="nxTypeFilter" onchange="applyFilters(true)"
                                 class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition">
                                 <option value="">Tất cả loại đơn</option>
                                 <option value="NHẬP">NHẬP</option>
@@ -425,6 +425,8 @@
                         <div id="nxMobileCards" class="md:hidden space-y-3">
                             <!-- Dynamic cards -->
                         </div>
+                        <!-- Pagination -->
+                        <div id="nxPagination" class="mt-2"></div>
                     </div>
                 </div>
 
@@ -441,7 +443,7 @@
                                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </span>
-                                <input type="text" id="tonKhoSearchInput" oninput="applyTonKhoFilters()"
+                                <input type="text" id="tonKhoSearchInput" oninput="applyTonKhoFilters(true)"
                                     placeholder="Tìm tên SP, model..."
                                     class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
@@ -487,6 +489,8 @@
                         </div>
                         <!-- Mobile View: Cards -->
                         <div id="tonKhoMobileCards" class="md:hidden space-y-3"></div>
+                        <!-- Pagination -->
+                        <div id="tkPagination" class="mt-2"></div>
                     </div>
                 </div>
                 <!-- Module: Giữ hàng -->
@@ -739,6 +743,8 @@
                                     <tbody id="invAnalyticsBody" class="divide-y divide-slate-50"></tbody>
                                 </table>
                             </div>
+                            <!-- Pagination -->
+                            <div id="invPagination"></div>
                         </div>
                         </table>
                     </div>

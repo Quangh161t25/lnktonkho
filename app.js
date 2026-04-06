@@ -30,6 +30,35 @@ let exportChartObj = null;
 let dailyImportChartObj = null;
 let dailyExportChartObj = null;
 
+// ─── Pagination State ─────────────────────────────────────────
+const PAGE_SIZE = 200;
+let nxCurrentPage = 1;
+let tkCurrentPage = 1;
+let invCurrentPage = 1;
+
+function renderPagination(totalItems, currentPage, containerId, onPageChange) {
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    const start = (currentPage - 1) * PAGE_SIZE + 1;
+    const end = Math.min(currentPage * PAGE_SIZE, totalItems);
+
+    container.innerHTML = `
+        <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-slate-100">
+            <span class="text-xs text-slate-400">${start}–${end} / ${totalItems}</span>
+            <div class="flex items-center gap-1">
+                <button onclick="${onPageChange}(1)" class="px-2 py-1 text-xs rounded-lg ${currentPage === 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-100'}" ${currentPage === 1 ? 'disabled' : ''}>«</button>
+                <button onclick="${onPageChange}(${currentPage - 1})" class="px-2 py-1 text-xs rounded-lg ${currentPage === 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-100'}" ${currentPage === 1 ? 'disabled' : ''}>‹</button>
+                <span class="px-3 py-1 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg">${currentPage}/${totalPages}</span>
+                <button onclick="${onPageChange}(${currentPage + 1})" class="px-2 py-1 text-xs rounded-lg ${currentPage === totalPages ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-100'}" ${currentPage === totalPages ? 'disabled' : ''}>›</button>
+                <button onclick="${onPageChange}(${totalPages})" class="px-2 py-1 text-xs rounded-lg ${currentPage === totalPages ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-100'}" ${currentPage === totalPages ? 'disabled' : ''}>»</button>
+            </div>
+        </div>
+    `;
+}
+
 // ─── Utility ──────────────────────────────────────────────────
 const formatNum = (val) => {
     const num = Number(val);
@@ -282,7 +311,8 @@ async function renderNXModule() {
     applyFilters();
 }
 
-function applyFilters() {
+function applyFilters(resetPage) {
+    if (resetPage) nxCurrentPage = 1;
     if (!nxDataRaw || nxDataRaw.length <= 1) return;
 
     const searchTerm = document.getElementById('nxSearchInput').value.toLowerCase().trim();
@@ -293,34 +323,44 @@ function applyFilters() {
     const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
     const iMaKH = nxHeaders.indexOf('ma_kh');
 
-    const filteredRows = nxDataRaw.slice(1).filter(row => {
-        // NPP data limitation
+    const parseDateNX = (s) => {
+        if (!s) return new Date(0);
+        if (s.includes('/')) { const p = s.split('/'); return new Date(+p[2], +p[1] - 1, +p[0]); }
+        return new Date(s);
+    };
+
+    let filteredRows = nxDataRaw.slice(1).filter(row => {
         if (isNPP && iMaKH !== -1) {
             const rowMaKH = (row[iMaKH] || '').toString().trim();
             if (rowMaKH !== currentUser.id) return false;
         }
-
         const mdh = (row[3] || '').toString().toLowerCase();
         const khach = (row[5] || '').toString().toLowerCase();
         const tensp = (row[7] || '').toString();
         const truong = (row[2] || '').toString();
-
         if (!mdh && !tensp) return false;
-
         const matchesSearch = !searchTerm || mdh.includes(searchTerm) || khach.includes(searchTerm);
         const matchesType = !typeFilter || truong === typeFilter;
         return matchesSearch && matchesType;
     });
 
+    // Sort by date descending
+    filteredRows.sort((a, b) => parseDateNX(b[1]).getTime() - parseDateNX(a[1]).getTime());
+
     document.getElementById('nxCount').textContent = `${filteredRows.length} đơn hàng`;
 
     if (filteredRows.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+        renderPagination(0, 1, 'nxPagination', 'goNxPage');
         return;
     }
 
+    // Pagination slice
+    const totalItems = filteredRows.length;
+    const pageRows = filteredRows.slice((nxCurrentPage - 1) * PAGE_SIZE, nxCurrentPage * PAGE_SIZE);
+
     if (!tbody) return;
-    tbody.innerHTML = filteredRows.map(row => {
+    tbody.innerHTML = pageRows.map(row => {
         const ngay = row[1] || '';
         const truong = row[2] || '';
         const id = row[3] || '';
@@ -348,9 +388,11 @@ function applyFilters() {
         `;
     }).join('');
 
+    renderPagination(totalItems, nxCurrentPage, 'nxPagination', 'goNxPage');
+
     const mobileContainer = document.getElementById('nxMobileCards');
     if (mobileContainer) {
-        mobileContainer.innerHTML = filteredRows.map(row => `
+        mobileContainer.innerHTML = pageRows.map(row => `
             <div class="mobile-card">
                 <div class="flex justify-between items-start mb-3 border-b border-slate-50 pb-2">
                     <div class="font-bold text-slate-800 text-sm">${row[3] || 'No ID'}</div>
@@ -366,6 +408,11 @@ function applyFilters() {
             </div>
         `).join('');
     }
+}
+
+function goNxPage(page) {
+    nxCurrentPage = page;
+    applyFilters();
 }
 
 // ─── Excel Upload Logic ────────────────────────────────────────
@@ -516,7 +563,8 @@ async function renderTonKhoModule() {
     applyTonKhoFilters();
 }
 
-function applyTonKhoFilters() {
+function applyTonKhoFilters(resetPage) {
+    if (resetPage) tkCurrentPage = 1;
     const tbody = document.getElementById('tonKhoTableBody');
     const searchTerm = document.getElementById('tonKhoSearchInput').value.toLowerCase().trim();
 
@@ -551,16 +599,13 @@ function applyTonKhoFilters() {
     const isNPP = currentUser && currentUser.role === 'NPP';
     let allowedProductIds = new Set();
     if (isNPP) {
-        // NPP chỉ thấy SP mà họ đã từng XUẤT (Lọc theo cột ma_kh trong NX_CT)
         const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
         const iMaKH = nxHeaders.indexOf('ma_kh');
-
         if (nxDataRaw && nxDataRaw.length > 1) {
             nxDataRaw.slice(1).forEach(row => {
                 const type = (row[2] || '').toString();
                 const rowMaKH = iMaKH !== -1 ? (row[iMaKH] || '').toString().trim() : '';
                 const spName = (row[7] || '').toString();
-
                 if (type === 'XUẤT' && rowMaKH === currentUser.id) {
                     allowedProductIds.add(spName);
                 }
@@ -568,24 +613,37 @@ function applyTonKhoFilters() {
         }
     }
 
-    const filteredRows = tonKhoDataRaw.slice(1).filter(row => {
+    // Pre-compute cotheban for sorting
+    let filteredRows = tonKhoDataRaw.slice(1).filter(row => {
         const id = (row[0] || '').toString();
         const ten = (row[1] || '').toString().toLowerCase();
         const model = (row[2] || '').toString().toLowerCase();
         if (!id || !ten) return false;
-
-        // NPP Filter
         if (isNPP && !allowedProductIds.has(row[1])) return false;
-
         return !searchTerm || ten.includes(searchTerm) || model.includes(searchTerm);
+    }).map(row => {
+        const id = (row[0] || '').toString();
+        const tondau = Number(row[6] || 0);
+        const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
+        const tamgiu = giuAgg[id] || 0;
+        const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
+        return { row, id, agg, tamgiu, cotheban };
     });
+
+    // Sort by Có thể bán descending
+    filteredRows.sort((a, b) => b.cotheban - a.cotheban);
 
     document.getElementById('tonKhoCount').textContent = `${filteredRows.length} sản phẩm`;
 
     if (filteredRows.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-400 text-sm">Không tìm thấy sản phẩm phù hợp.</td></tr>';
+        renderPagination(0, 1, 'tkPagination', 'goTkPage');
         return;
     }
+
+    // Pagination slice
+    const totalItems = filteredRows.length;
+    const pageItems = filteredRows.slice((tkCurrentPage - 1) * PAGE_SIZE, tkCurrentPage * PAGE_SIZE);
 
     if (!tbody) return;
 
@@ -612,23 +670,19 @@ function applyTonKhoFilters() {
         }
     }
 
-    tbody.innerHTML = filteredRows.map(row => {
-        const id = (row[0] || '').toString();
+    tbody.innerHTML = pageItems.map(item => {
+        const row = item.row;
         const ten = row[1] || '';
         const model = row[2] || '';
         const tondau = Number(row[6] || 0);
         const tonHT = Number(row[7] || 0);
-
-        const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
-        const tamgiu = giuAgg[id] || 0;
-        const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
 
         if (isNPP) {
             return `
                 <tr class="hover:bg-slate-50/80 transition-colors">
                     <td class="px-4 py-3 text-sm font-semibold text-slate-700">${ten}</td>
                     <td class="px-4 py-3 text-xs text-slate-500 italic">${model}</td>
-                    <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(cotheban)}</td>
+                    <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(item.cotheban)}</td>
                 </tr>
             `;
         }
@@ -638,25 +692,24 @@ function applyTonKhoFilters() {
                 <td class="px-4 py-3 text-sm font-semibold text-slate-700">${ten}</td>
                 <td class="px-4 py-3 text-xs text-slate-500 italic">${model}</td>
                 <td class="px-4 py-3 text-xs text-right text-slate-600">${formatNum(tondau)}</td>
-                <td class="px-4 py-3 text-xs text-right text-blue-600 font-medium">${formatNum(agg.nhap)}</td>
-                <td class="px-4 py-3 text-xs text-right text-orange-600 font-medium">${formatNum(agg.xuat)}</td>
-                <td class="px-4 py-3 text-xs text-right text-slate-400 font-bold">${formatNum(tamgiu)}</td>
-                <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(cotheban)}</td>
+                <td class="px-4 py-3 text-xs text-right text-blue-600 font-medium">${formatNum(item.agg.nhap)}</td>
+                <td class="px-4 py-3 text-xs text-right text-orange-600 font-medium">${formatNum(item.agg.xuat)}</td>
+                <td class="px-4 py-3 text-xs text-right text-slate-400 font-bold">${formatNum(item.tamgiu)}</td>
+                <td class="px-4 py-3 text-xs text-right text-emerald-600 font-bold">${formatNum(item.cotheban)}</td>
                 <td class="px-4 py-3 text-xs text-right text-slate-700 font-bold">${formatNum(tonHT)}</td>
             </tr>
         `;
     }).join('');
 
+    renderPagination(totalItems, tkCurrentPage, 'tkPagination', 'goTkPage');
+
     const mobileContainer = document.getElementById('tonKhoMobileCards');
     if (mobileContainer) {
-        mobileContainer.innerHTML = filteredRows.map(r => {
-            const id = (r[0] || '').toString().trim();
+        mobileContainer.innerHTML = pageItems.map(item => {
+            const r = item.row;
             const ten = (r[1] || '').toString().trim();
             const model = (r[2] || '').toString().trim();
             const tondau = Number(r[6] || 0);
-            const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
-            const tamgiu = giuAgg[id] || 0;
-            const cotheban = tondau + agg.nhap - agg.xuat - tamgiu;
 
             if (isNPP) {
                 return `
@@ -665,7 +718,7 @@ function applyTonKhoFilters() {
                         <div class="text-[10px] text-slate-400 italic mb-2">${model}</div>
                         <div class="bg-emerald-50 p-3 rounded-xl flex justify-between items-center">
                             <div class="mobile-card-label text-emerald-600 font-semibold">Có thể bán</div>
-                            <div class="font-bold text-emerald-700 text-lg">${formatNum(cotheban)}</div>
+                            <div class="font-bold text-emerald-700 text-lg">${formatNum(item.cotheban)}</div>
                         </div>
                     </div>
                 `;
@@ -676,17 +729,21 @@ function applyTonKhoFilters() {
                     <div class="font-bold text-slate-800 text-sm mb-2">${ten}</div>
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                         <div class="bg-slate-50 p-2 rounded-lg"><div class="mobile-card-label">Tồn đầu</div><div class="font-bold">${formatNum(tondau)}</div></div>
-                        <div class="bg-blue-50 p-2 rounded-lg"><div class="mobile-card-label text-blue-600">Nhập</div><div class="font-bold text-blue-600">${formatNum(agg.nhap)}</div></div>
-                        <div class="bg-orange-50 p-2 rounded-lg"><div class="mobile-card-label text-orange-600">Xuất</div><div class="font-bold text-orange-600">${formatNum(agg.xuat)}</div></div>
-                        <div class="bg-emerald-50 p-2 rounded-lg"><div class="mobile-card-label text-emerald-600">Có thể bán</div><div class="font-bold text-emerald-600">${formatNum(cotheban)}</div></div>
+                        <div class="bg-blue-50 p-2 rounded-lg"><div class="mobile-card-label text-blue-600">Nhập</div><div class="font-bold text-blue-600">${formatNum(item.agg.nhap)}</div></div>
+                        <div class="bg-orange-50 p-2 rounded-lg"><div class="mobile-card-label text-orange-600">Xuất</div><div class="font-bold text-orange-600">${formatNum(item.agg.xuat)}</div></div>
+                        <div class="bg-emerald-50 p-2 rounded-lg"><div class="mobile-card-label text-emerald-600">Có thể bán</div><div class="font-bold text-emerald-600">${formatNum(item.cotheban)}</div></div>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    // Check for stock-out alerts
     checkStockAndNotify();
+}
+
+function goTkPage(page) {
+    tkCurrentPage = page;
+    applyTonKhoFilters();
 }
 
 // ─── Module: Giữ Hàng ─────────────────────────────────────────
@@ -1269,7 +1326,8 @@ function renderChart(canvasId, data, key, label, color, type, existingChart, set
 }
 
 // ─── Inventory Analytics ──────────────────────────────────────
-function renderInventoryAnalytics() {
+function renderInventoryAnalytics(resetPage) {
+    if (resetPage) invCurrentPage = 1;
     const tbody = document.getElementById('invAnalyticsBody');
     const countEl = document.getElementById('invAnalyticsCount');
     if (!tbody) return;
@@ -1332,30 +1390,40 @@ function renderInventoryAnalytics() {
         ? Math.max(1, Math.round((globalMaxDate - globalMinDate) / 86400000) + 1)
         : 30;
 
-    const rows = tonKhoDataRaw.slice(1).filter(r => {
+    // Pre-compute tonHT for sorting
+    let rows = tonKhoDataRaw.slice(1).filter(r => {
         const id = (r[0] || '').toString().trim();
         const name = (r[1] || '').toString().trim();
         if (!id || !name) return false;
         if (filterIdSp && !id.toLowerCase().includes(filterIdSp)) return false;
         return true;
+    }).map(r => {
+        const id = (r[0] || '').toString().trim();
+        const tondau = Number(r[6] || 0);
+        const nx = nxByIdAll[id] || { nhap_all: 0, xuat_all: 0, nhap_this: 0, xuat_this: 0, nhap_prev: 0, xuat_prev: 0 };
+        const tonHT = tondau + nx.nhap_all - nx.xuat_all;
+        return { r, id, tondau, nx, tonHT };
     });
+
+    // Sort by Tồn HT descending
+    rows.sort((a, b) => b.tonHT - a.tonHT);
 
     const formatN = (n) => n.toLocaleString('vi-VN');
     const fmt2 = (n) => n.toFixed(2);
 
     if (countEl) countEl.textContent = rows.length + ' sản phẩm';
 
-    tbody.innerHTML = rows.map(r => {
-        const id = (r[0] || '').toString().trim();
+    // Pagination slice
+    const totalItems = rows.length;
+    const pageRows = rows.slice((invCurrentPage - 1) * PAGE_SIZE, invCurrentPage * PAGE_SIZE);
+
+    tbody.innerHTML = pageRows.map(item => {
+        const r = item.r;
         const model = (r[2] || '').toString();
         const tensp = (r[1] || '').toString();
-        const tondau = Number(r[6] || 0);
 
-        const nx = nxByIdAll[id] || { nhap_all: 0, xuat_all: 0, nhap_this: 0, xuat_this: 0, nhap_prev: 0, xuat_prev: 0 };
-        const tonHT = tondau + nx.nhap_all - nx.xuat_all;
-
-        const ton_this = tondau + nx.nhap_this - nx.xuat_this;
-        const ton_prev = tondau + nx.nhap_prev - nx.xuat_prev;
+        const ton_this = item.tondau + item.nx.nhap_this - item.nx.xuat_this;
+        const ton_prev = item.tondau + item.nx.nhap_prev - item.nx.xuat_prev;
         let growthHtml = '<span class="text-slate-300">—</span>';
         if (ton_prev !== 0) {
             const g = ((ton_this - ton_prev) / Math.abs(ton_prev)) * 100;
@@ -1364,37 +1432,44 @@ function renderInventoryAnalytics() {
             growthHtml = '<span class="' + color + ' font-bold">' + arrow + ' ' + fmt2(g) + '%</span>';
         }
 
-        const avgInv = (tondau + tonHT) / 2;
+        const avgInv = (item.tondau + item.tonHT) / 2;
         let turnoverHtml = '<span class="text-slate-300">—</span>';
-        if (avgInv > 0 && nx.xuat_all > 0) {
-            const t = nx.xuat_all / avgInv;
+        if (avgInv > 0 && item.nx.xuat_all > 0) {
+            const t = item.nx.xuat_all / avgInv;
             const color = t >= 4 ? 'text-emerald-600' : t >= 1 ? 'text-blue-500' : 'text-orange-500';
             turnoverHtml = '<span class="' + color + ' font-bold">' + fmt2(t) + 'x</span>';
         }
 
         let dtsHtml = '<span class="text-slate-300">—</span>';
-        const dailySales = nx.xuat_all / totalDays;
-        if (tonHT > 0 && dailySales > 0) {
-            const days = Math.round(tonHT / dailySales);
+        const dailySales = item.nx.xuat_all / totalDays;
+        if (item.tonHT > 0 && dailySales > 0) {
+            const days = Math.round(item.tonHT / dailySales);
             const color = days <= 30 ? 'text-red-500' : days <= 90 ? 'text-orange-500' : 'text-emerald-600';
             dtsHtml = '<span class="' + color + ' font-bold">' + days + ' ngày</span>';
-        } else if (tonHT <= 0) {
+        } else if (item.tonHT <= 0) {
             dtsHtml = '<span class="text-slate-400 text-[10px]">Hết hàng</span>';
         }
 
         return '<tr class="hover:bg-slate-50 transition-colors">' +
-            '<td class="px-4 py-2.5 font-mono text-[10px] font-bold text-slate-400 uppercase">' + id + '</td>' +
+            '<td class="px-4 py-2.5 font-mono text-[10px] font-bold text-slate-400 uppercase">' + item.id + '</td>' +
             '<td class="px-4 py-2.5 font-semibold text-slate-700 text-xs">' + tensp + '</td>' +
             '<td class="px-4 py-2.5 text-slate-500 text-[11px]">' + model + '</td>' +
-            '<td class="px-4 py-2.5 text-right text-slate-600">' + formatN(tondau) + '</td>' +
-            '<td class="px-4 py-2.5 text-right text-blue-600">' + formatN(nx.nhap_all) + '</td>' +
-            '<td class="px-4 py-2.5 text-right text-orange-600">' + formatN(nx.xuat_all) + '</td>' +
-            '<td class="px-4 py-2.5 text-right font-bold text-emerald-700">' + formatN(tonHT) + '</td>' +
+            '<td class="px-4 py-2.5 text-right text-slate-600">' + formatN(item.tondau) + '</td>' +
+            '<td class="px-4 py-2.5 text-right text-blue-600">' + formatN(item.nx.nhap_all) + '</td>' +
+            '<td class="px-4 py-2.5 text-right text-orange-600">' + formatN(item.nx.xuat_all) + '</td>' +
+            '<td class="px-4 py-2.5 text-right font-bold text-emerald-700">' + formatN(item.tonHT) + '</td>' +
             '<td class="px-4 py-2.5 text-center">' + growthHtml + '</td>' +
             '<td class="px-4 py-2.5 text-center">' + turnoverHtml + '</td>' +
             '<td class="px-4 py-2.5 text-center">' + dtsHtml + '</td>' +
             '</tr>';
     }).join('');
+
+    renderPagination(totalItems, invCurrentPage, 'invPagination', 'goInvPage');
+}
+
+function goInvPage(page) {
+    invCurrentPage = page;
+    renderInventoryAnalytics();
 }
 
 // ─── App Init ────────────────────────────────────────────────
