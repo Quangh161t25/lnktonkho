@@ -227,6 +227,11 @@ function updateUserProfileUI() {
     const canUpload = currentUser.role === 'ADMIN' || currentUser.role === 'kt';
     const btnNhap = document.getElementById('btnUploadNhap');
     const btnXuat = document.getElementById('btnUploadXuat');
+    const btnUploadTraLai = document.getElementById('btnUploadTraLai');
+    const btnUploadNhapTra = document.getElementById('btnUploadNhapTra');
+    const oldBtn = document.getElementById('btnExportTraLai');
+    if (oldBtn) oldBtn.remove(); 
+
     if (btnNhap) {
         if (canUpload) btnNhap.classList.remove('hidden');
         else btnNhap.classList.add('hidden');
@@ -234,6 +239,14 @@ function updateUserProfileUI() {
     if (btnXuat) {
         if (canUpload) btnXuat.classList.remove('hidden');
         else btnXuat.classList.add('hidden');
+    }
+    if (btnUploadTraLai) {
+        if (canUpload) btnUploadTraLai.classList.remove('hidden');
+        else btnUploadTraLai.classList.add('hidden');
+    }
+    if (btnUploadNhapTra) {
+        if (canUpload) btnUploadNhapTra.classList.remove('hidden');
+        else btnUploadNhapTra.classList.add('hidden');
     }
 }
 
@@ -580,7 +593,7 @@ async function processWorkbook(workbook, type) {
             mappedRow[8] = r[8] || "";   // Số lượng (Excel I)
             mappedRow[9] = r[9] || "";   // Đơn giá (Excel J)
             mappedRow[10] = r[10] || ""; // Thành tiền (Excel K)
-        } else {
+        } else if (type === 'XUẤT') {
             // Export Mapping: H=7 (8th), I=8 (9th), J=9 (10th), K=10 (11th), M=12 (13th), N=13 (14th), O=14 (15th)
             mappedRow[4] = r[7] || "";   // Ma KH (Excel H)
             mappedRow[5] = r[8] || "";   // Ten KH (Excel I)
@@ -589,7 +602,33 @@ async function processWorkbook(workbook, type) {
             mappedRow[8] = r[12] || "";  // Số lượng (Excel M)
             mappedRow[9] = r[13] || "";  // Đơn giá (Excel N)
             mappedRow[10] = r[14] || ""; // Thành tiền (Excel O)
+        } else if (type === 'HÀNG TRẢ LẠI' || type === 'XUẤT TRẢ') {
+            // Return Mapping: B=1, C=2, F=5, G=6, J=9, M=12, N=13
+            mappedRow[1] = r[1] || "";   // Ngay (Excel B)
+            mappedRow[2] = "XUẤT";       // Ghi "XUẤT" thay vì XUẤT TRẢ
+            mappedRow[3] = r[2] || "";   // Mã đơn (Excel C)
+            mappedRow[6] = r[5] || "";   // ID SP (Excel F)
+            mappedRow[7] = r[6] || "";   // Tên SP (Excel G)
+            mappedRow[8] = r[12] || "";  // Số lượng (Excel M)
+            mappedRow[9] = r[9] || "";    // Đơn giá (Excel J)
+            mappedRow[10] = r[13] || ""; // Thành tiền (Excel N)
+        } else if (type === 'NHẬP TRẢ') {
+            // Return Mapping: B=1, C=2, H=7, I=8, J=9, K=10, Q=16, N=13, R=17
+            mappedRow[1] = r[1] || "";   // Ngay (Excel B)
+            mappedRow[2] = "NHẬP";       // Ghi "NHẬP" thay vì NHẬP TRẢ
+            mappedRow[3] = r[2] || "";   // Mã đơn (Excel C)
+            mappedRow[4] = r[7] || "";   // Ma KH (Excel H)
+            mappedRow[5] = r[8] || "";   // Ten Khach (Excel I)
+            mappedRow[6] = r[9] || "";   // ID SP (Excel J)
+            mappedRow[7] = r[10] || "";  // Tên SP (Excel K)
+            mappedRow[8] = r[16] || "";  // Số lượng (Excel Q)
+            mappedRow[9] = r[13] || "";  // Đơn giá (Excel N)
+            mappedRow[10] = r[17] || ""; // Thành tiền (Excel R)
         }
+
+        // Kiểm tra số lượng (slg > 0)
+        const slgVal = Number(mappedRow[8]);
+        if (isNaN(slgVal) || slgVal <= 0) continue;
 
         // Metadata: id_nv (GS index 11) - Bỏ trống theo yêu cầu
         mappedRow[11] = "";
@@ -638,7 +677,9 @@ async function appendNXData(rows) {
     }
 }
 
-// ─── Module: Tồn Kho ──────────────────────────────────────────
+// ============================================================
+// Module: Tồn Kho
+// ============================================================
 async function fetchTonKhoData() {
     try {
         const token = await getAccessToken();
@@ -686,9 +727,8 @@ function applyTonKhoFilters(resetPage) {
             const type = (row[2] || '').toString();
             const slg = Number(row[8] || 0);
             if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0, traLai: 0 };
-            if (type === 'NHẬP') nxAgg[idSp].nhap += slg;
-            if (type === 'XUẤT') nxAgg[idSp].xuat += slg;
-            if (type === 'HÀNG TRẢ LẠI') nxAgg[idSp].traLai += slg;
+            if (type === 'NHẬP' || type === 'NHẬP TRẢ') nxAgg[idSp].nhap += slg;
+            if (type === 'XUẤT' || type === 'XUẤT TRẢ' || type === 'HÀNG TRẢ LẠI') nxAgg[idSp].xuat += slg;
         });
     }
 
@@ -1470,12 +1510,11 @@ function renderInventoryAnalytics(resetPage) {
             const isThisMonth = (d.getMonth() === thisMonth && d.getFullYear() === thisYear);
             const isPrevMonth = (d.getMonth() === prevMonth && d.getFullYear() === prevYear);
 
-            if (type === 'NHẬP' || type === 'HÀNG TRẢ LẠI') {
+            if (type === 'NHẬP' || type === 'NHẬP TRẢ') {
                 nxByIdAll[id].nhap_all += slg;
                 if (isThisMonth) nxByIdAll[id].nhap_this += slg;
                 if (isPrevMonth) nxByIdAll[id].nhap_prev += slg;
-            }
-            if (type === 'XUẤT') {
+            } else if (type === 'XUẤT' || type === 'XUẤT TRẢ' || type === 'HÀNG TRẢ LẠI') {
                 nxByIdAll[id].xuat_all += slg;
                 if (isThisMonth) nxByIdAll[id].xuat_this += slg;
                 if (isPrevMonth) nxByIdAll[id].xuat_prev += slg;
