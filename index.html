@@ -417,6 +417,20 @@
                                     </svg>
                                     <span>Tải lên XUẤT</span>
                                 </button>
+                                
+                                <button id="btnUploadTraLai" onclick="triggerUpload('HÀNG TRẢ LẠI')" class="hidden flex items-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-pink-700 shadow-sm transition">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    </svg>
+                                    <span>TẢI LÊN TRẢ LẠI MUA HÀNG</span>
+                                </button>
+
+                                <button id="btnUploadNhapTra" onclick="triggerUpload('NHẬP TRẢ')" class="hidden flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-700 shadow-sm transition">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                                    </svg>
+                                    <span>TẢI LÊN TRẢ LẠI XUẤT HÀNG</span>
+                                </button>
 
                                 <div class="h-6 w-px bg-gray-300 mx-1"></div>
                                 <span id="nxCount" class="text-xs font-medium text-gray-600 bg-white px-3 py-1.5 rounded-md border border-gray-200 shadow-sm">0 đơn hàng</span>
@@ -451,7 +465,6 @@
                                 <option value="">Tất cả loại đơn</option>
                                 <option value="NHẬP">NHẬP</option>
                                 <option value="XUẤT">XUẤT</option>
-                                <option value="HÀNG TRẢ LẠI">TRẢ LẠI</option>
                             </select>
 
                             <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
@@ -525,6 +538,12 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button id="btnUpdateTonKho" onclick="saveTonCuoi()" class="hidden flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-700 shadow-sm transition">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span>CẬP NHẬT TỒN CUỐI LÊN SHEET</span>
+                            </button>
                             <button onclick="renderTonKhoModule()"
                                 class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition"
                                 title="Làm mới dữ liệu">
@@ -886,14 +905,10 @@
                             <div
                                 class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
                                 <div>
-                                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Phân tích
-                                        tồn kho nâng cao</h4>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">Không bị ảnh hưởng bởi lọc ngày — Chỉ
-                                        lọc theo Mã SP</p>
+                                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Phân tích tồn kho nâng cao</h4>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">Không bị ảnh hưởng bởi lọc ngày — Chỉ lọc theo Mã SP</p>
                                 </div>
-                                <span id="invAnalyticsCount"
-                                    class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">0
-                                    sản phẩm</span>
+                                <span id="invAnalyticsCount" class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">0 sản phẩm</span>
                             </div>
                             <div class="overflow-x-auto no-scrollbar">
                                 <table class="w-full text-left border-collapse text-xs" style="min-width:1000px">

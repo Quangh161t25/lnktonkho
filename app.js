@@ -230,7 +230,7 @@ function updateUserProfileUI() {
     const btnUploadTraLai = document.getElementById('btnUploadTraLai');
     const btnUploadNhapTra = document.getElementById('btnUploadNhapTra');
     const oldBtn = document.getElementById('btnExportTraLai');
-    if (oldBtn) oldBtn.remove(); 
+    if (oldBtn) oldBtn.remove();
 
     if (btnNhap) {
         if (canUpload) btnNhap.classList.remove('hidden');
@@ -248,6 +248,11 @@ function updateUserProfileUI() {
         if (canUpload) btnUploadNhapTra.classList.remove('hidden');
         else btnUploadNhapTra.classList.add('hidden');
     }
+    const btnUpdateTonKho = document.getElementById('btnUpdateTonKho');
+    if (btnUpdateTonKho) {
+        if (canUpload) btnUpdateTonKho.classList.remove('hidden');
+        else btnUpdateTonKho.classList.add('hidden');
+    }
 }
 
 // ─── Module Navigation ────────────────────────────────────────
@@ -257,6 +262,11 @@ const ROLE_PERMISSIONS = {
     'kt': ['nhapxuat', 'tonkho', 'giuhang', 'dashboard'],
     'NPP': ['tonkho', 'nhapxuat'],
     'NVKD': ['tonkho', 'nhapxuat', 'giuhang']
+};
+
+// Cấu hình hạn chế đặc biệt cho từng tài khoản (Special Restrictions)
+const SPECIAL_RESTRICTIONS = {
+    'KH00206': ['TK-0348', 'TK-0318', 'TK-0320', 'TK-0324']
 };
 
 function switchModule(moduleName) {
@@ -431,6 +441,11 @@ function applyFilters(resetPage) {
         const combinedProductStr = `${idsp} - ${tensp}`;
         const matchesProduct = !productSearch || idsp.includes(productSearch) || tensp.includes(productSearch) || combinedProductStr.includes(productSearch);
         const matchesType = !typeFilter || truong === typeFilter;
+
+        // Áp dụng hạn chế đặc biệt (Special Restrictions)
+        if (currentUser && SPECIAL_RESTRICTIONS[currentUser.id]) {
+            if (SPECIAL_RESTRICTIONS[currentUser.id].includes(idsp.toUpperCase())) return false;
+        }
 
         // Date range filter
         let matchesDate = true;
@@ -677,6 +692,75 @@ async function appendNXData(rows) {
     }
 }
 
+async function saveTonCuoi() {
+    if (!tonKhoDataRaw || tonKhoDataRaw.length <= 1) {
+        alert("Không có dữ liệu tồn kho để cập nhật.");
+        return;
+    }
+
+    if (!confirm("Hệ thống sẽ tính toán lại Tồn cuối từ Tồn đầu và các phát sinh Nhập/Xuất để ghi đè lên Google Sheet. Bạn có chắc chắn?")) return;
+
+    const btn = document.getElementById('btnUpdateTonKho');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = 'Đang xử lý...';
+
+    try {
+        // Refresh data to get latest
+        await Promise.all([fetchTonKhoData(), fetchNXData()]);
+
+        const nxAgg = {};
+        if (nxDataRaw && nxDataRaw.length > 1) {
+            nxDataRaw.slice(1).forEach(row => {
+                const idSp = (row[6] || '').toString();
+                const type = (row[2] || '').toString();
+                const slg = Number(row[8] || 0);
+                if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0 };
+                if (type === 'NHẬP' || type === 'NHẬP TRẢ') nxAgg[idSp].nhap += slg;
+                if (type === 'XUẤT' || type === 'XUẤT TRẢ' || type === 'HÀNG TRẢ LẠI') nxAgg[idSp].xuat += slg;
+            });
+        }
+
+        // Prepare values for column H (index 7)
+        // Data in tonKhoDataRaw starts from header at index 0. We update from row 2 (index 1)
+        const updatedValues = tonKhoDataRaw.slice(1).map(row => {
+            const id = (row[0] || '').toString();
+            const tonDau = Number(row[6] || 0); // Tồn đầu is Column G (Index 6)
+            const agg = nxAgg[id] || { nhap: 0, xuat: 0 };
+            const tonCuoi = tonDau + agg.nhap - agg.xuat;
+            return [tonCuoi];
+        });
+
+        const token = await getAccessToken();
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.tonKhoSheetName}!H2:H${1 + updatedValues.length}?valueInputOption=USER_ENTERED`;
+
+        const resp = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                values: updatedValues
+            })
+        });
+
+        if (resp.ok) {
+            alert("Cập nhật Tồn cuối lên Google Sheet thành công!");
+            await fetchTonKhoData(); // Refresh local cache
+            applyTonKhoFilters();    // Refresh UI
+        } else {
+            const err = await resp.json();
+            console.error("Update Error:", err);
+            alert("Lỗi khi cập nhật Google Sheets. Vui lòng kiểm tra quyền truy cập.");
+        }
+    } catch (err) {
+        console.error("Save Ton Cuoi Error:", err);
+        alert("Lỗi kết nối khi cập nhật dữ liệu: " + err.message);
+    } finally {
+        if (btn) btn.innerHTML = originalText;
+    }
+}
+
 // ============================================================
 // Module: Tồn Kho
 // ============================================================
@@ -765,6 +849,12 @@ function applyTonKhoFilters(resetPage) {
         const ten = (row[1] || '').toString().toLowerCase();
         const model = (row[2] || '').toString().toLowerCase();
         if (!id || !ten) return false;
+
+        // Áp dụng hạn chế đặc biệt nếu có
+        if (currentUser && SPECIAL_RESTRICTIONS[currentUser.id]) {
+            if (SPECIAL_RESTRICTIONS[currentUser.id].includes(id)) return false;
+        }
+
         if (isNPP && !allowedProductIds.has(row[1])) return false;
         return !searchTerm || ten.includes(searchTerm) || model.includes(searchTerm);
     }).map(row => {
