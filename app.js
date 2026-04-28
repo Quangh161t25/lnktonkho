@@ -548,6 +548,129 @@ function goNxPage(page) {
     applyFilters();
 }
 
+/**
+ * Tải xuống dữ liệu Nhập xuất hiện tại (theo bộ lọc)
+ */
+function downloadNXExcel() {
+    if (!nxDataRaw || nxDataRaw.length <= 1) {
+        alert("Không có dữ liệu để tải xuống.");
+        return;
+    }
+
+    // Lấy các giá trị lọc hiện tại
+    const searchTerm = document.getElementById('nxSearchInput').value.toLowerCase().trim();
+    const productSearch = document.getElementById('nxSearchProduct').value.toLowerCase().trim();
+    const typeFilter = document.getElementById('nxTypeFilter').value;
+    const dateFrom = document.getElementById('nxDateFrom').value;
+    const dateTo = document.getElementById('nxDateTo').value;
+
+    const isNPP = currentUser && currentUser.role === 'NPP';
+    const isNVKD = currentUser && currentUser.role === 'NVKD';
+    const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
+    const iMaKH = nxHeaders.indexOf('ma_kh');
+    const iIdNv = nxHeaders.findIndex(h => h === 'id_nv' || h === 'mã nv' || h === 'id nhân viên' || h === 'nhân viên');
+    const finalIIdNv = iIdNv !== -1 ? iIdNv : 11;
+
+    const parseDateNX = (s) => {
+        if (!s) return new Date(0);
+        if (s.includes('/')) { const p = s.split('/'); return new Date(+p[2], +p[1] - 1, +p[0]); }
+        return new Date(s);
+    };
+
+    // Lọc dữ liệu (tương tự applyFilters)
+    const filteredRows = nxDataRaw.slice(1).filter(row => {
+        if (isNPP && iMaKH !== -1) {
+            const rowMaKH = (row[iMaKH] || '').toString().trim();
+            if (rowMaKH !== currentUser.id) return false;
+        }
+        if (isNVKD) {
+            const rowIdNv = (row[finalIIdNv] || '').toString().trim();
+            if (rowIdNv !== currentUser.id) return false;
+        }
+
+        const mdh = (row[3] || '').toString().toLowerCase();
+        const khach = (row[5] || '').toString().toLowerCase();
+        const idsp = (row[6] || '').toString().toLowerCase();
+        const tensp = (row[7] || '').toString().toLowerCase();
+        const truong = (row[2] || '').toString();
+        const rowDate = parseDateNX(row[1]);
+
+        if (!mdh && !tensp) return false;
+
+        const matchesSearch = !searchTerm || mdh.includes(searchTerm) || khach.includes(searchTerm);
+        const combinedProductStr = `${idsp} - ${tensp}`;
+        const matchesProduct = !productSearch || idsp.includes(productSearch) || tensp.includes(productSearch) || combinedProductStr.includes(productSearch);
+        const matchesType = !typeFilter || truong === typeFilter;
+
+        if (currentUser && SPECIAL_RESTRICTIONS[currentUser.id]) {
+            if (SPECIAL_RESTRICTIONS[currentUser.id].includes(idsp.toUpperCase())) return false;
+        }
+
+        let matchesDate = true;
+        if (dateFrom) {
+            const dFrom = new Date(dateFrom);
+            dFrom.setHours(0, 0, 0, 0);
+            if (rowDate < dFrom) matchesDate = false;
+        }
+        if (dateTo) {
+            const dTo = new Date(dateTo);
+            dTo.setHours(23, 59, 59, 999);
+            if (rowDate > dTo) matchesDate = false;
+        }
+
+        return matchesSearch && matchesProduct && matchesType && matchesDate;
+    });
+
+    // Sắp xếp theo ngày giảm dần
+    filteredRows.sort((a, b) => parseDateNX(b[1]).getTime() - parseDateNX(a[1]).getTime());
+
+    if (filteredRows.length === 0) {
+        alert("Không có dữ liệu phù hợp với bộ lọc để tải xuống.");
+        return;
+    }
+
+    // Chuẩn bị dữ liệu cho file Excel
+    const excelData = filteredRows.map(row => ({
+        "Ngày": row[1] || "",
+        "Loại": row[2] || "",
+        "Mã đơn": row[3] || "",
+        "Mã KH": row[4] || "",
+        "Khách hàng": row[5] || "",
+        "Mã SP": row[6] || "",
+        "Tên sản phẩm": row[7] || "",
+        "Số lượng": Number(row[8] || 0),
+        "Đơn giá": Number(row[9] || 0),
+        "Thành tiền": Number(row[10] || 0),
+        "Nhân viên": row[11] || ""
+    }));
+
+    // Tạo workbook và sheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Tự động điều chỉnh độ rộng cột (tùy chọn)
+    const wscols = [
+        { wch: 12 }, // Ngày
+        { wch: 8 },  // Loại
+        { wch: 15 }, // Mã đơn
+        { wch: 10 }, // Mã KH
+        { wch: 20 }, // Khách hàng
+        { wch: 12 }, // Mã SP
+        { wch: 30 }, // Tên sản phẩm
+        { wch: 10 }, // Số lượng
+        { wch: 12 }, // Đơn giá
+        { wch: 15 }, // Thành tiền
+        { wch: 15 }  // Nhân viên
+    ];
+    worksheet['!cols'] = wscols;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Chi tiết Nhập Xuất");
+
+    // Xuất file
+    const fileName = `Nhap_Xuat_Chi_Tiet_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+}
+
 // ─── Excel Upload Logic ────────────────────────────────────────
 let currentUploadType = '';
 
@@ -983,6 +1106,114 @@ function applyTonKhoFilters(resetPage) {
 function goTkPage(page) {
     tkCurrentPage = page;
     applyTonKhoFilters();
+}
+
+/**
+ * Tải xuống dữ liệu Tồn kho hiện tại (theo bộ lọc)
+ */
+function downloadTonKhoExcel() {
+    if (!tonKhoDataRaw || tonKhoDataRaw.length <= 1) {
+        alert("Không có dữ liệu tồn kho để tải xuống.");
+        return;
+    }
+
+    const searchTerm = document.getElementById('tonKhoSearchInput').value.toLowerCase().trim();
+
+    // Aggregates (giống applyTonKhoFilters)
+    const nxAgg = {};
+    if (nxDataRaw && nxDataRaw.length > 1) {
+        nxDataRaw.slice(1).forEach(row => {
+            const idSp = (row[6] || '').toString();
+            const type = (row[2] || '').toString();
+            const slg = Number(row[8] || 0);
+            if (!nxAgg[idSp]) nxAgg[idSp] = { nhap: 0, xuat: 0, traLai: 0 };
+            if (type === 'NHẬP' || type === 'NHẬP TRẢ') nxAgg[idSp].nhap += slg;
+            if (type === 'XUẤT' || type === 'XUẤT TRẢ' || type === 'HÀNG TRẢ LẠI') nxAgg[idSp].xuat += slg;
+        });
+    }
+
+    const giuAgg = {};
+    if (giuHangDataRaw && giuHangDataRaw.length > 1) {
+        giuHangDataRaw.slice(1).forEach(row => {
+            const idSp = (row[3] || '').toString();
+            const slg = Number(row[5] || 0);
+            if (!giuAgg[idSp]) giuAgg[idSp] = 0;
+            giuAgg[idSp] += slg;
+        });
+    }
+
+    const isNPP = currentUser && currentUser.role === 'NPP';
+    let allowedProductIds = new Set();
+    if (isNPP) {
+        const nxHeaders = nxDataRaw[0] ? nxDataRaw[0].map(h => (h || '').toString().toLowerCase().trim()) : [];
+        const iMaKH = nxHeaders.indexOf('ma_kh');
+        if (nxDataRaw && nxDataRaw.length > 1) {
+            nxDataRaw.slice(1).forEach(row => {
+                const type = (row[2] || '').toString();
+                const rowMaKH = iMaKH !== -1 ? (row[iMaKH] || '').toString().trim() : '';
+                const spName = (row[7] || '').toString();
+                if (type === 'XUẤT' && rowMaKH === currentUser.id) {
+                    allowedProductIds.add(spName);
+                }
+            });
+        }
+    }
+
+    const filteredRows = tonKhoDataRaw.slice(1).filter(row => {
+        const id = (row[0] || '').toString();
+        const ten = (row[1] || '').toString().toLowerCase();
+        const model = (row[2] || '').toString().toLowerCase();
+        if (!id || !ten) return false;
+
+        if (currentUser && SPECIAL_RESTRICTIONS[currentUser.id]) {
+            if (SPECIAL_RESTRICTIONS[currentUser.id].includes(id)) return false;
+        }
+
+        if (isNPP && !allowedProductIds.has(row[1])) return false;
+        return !searchTerm || ten.includes(searchTerm) || model.includes(searchTerm);
+    }).map(row => {
+        const id = (row[0] || '').toString();
+        const tondau = Number(row[6] || 0);
+        const agg = nxAgg[id] || { nhap: 0, xuat: 0, traLai: 0 };
+        const tamgiu = giuAgg[id] || 0;
+        const cotheban = tondau + agg.nhap + agg.traLai - agg.xuat - tamgiu;
+        const toncuoi = tondau + agg.nhap + agg.traLai - agg.xuat;
+
+        return {
+            "Mã SP": id,
+            "Tên sản phẩm": row[1] || "",
+            "Model": row[2] || "",
+            "Tồn đầu": tondau,
+            "Nhập": agg.nhap,
+            "Trả lại": agg.traLai,
+            "Xuất": agg.xuat,
+            "Tạm giữ": tamgiu,
+            "Có thể bán": cotheban,
+            "Tồn cuối": toncuoi
+        };
+    });
+
+    if (filteredRows.length === 0) {
+        alert("Không có dữ liệu phù hợp để tải xuống.");
+        return;
+    }
+
+    // Nếu là NPP, chỉ xuất các cột được phép
+    let finalData = filteredRows;
+    if (isNPP) {
+        finalData = filteredRows.map(item => ({
+            "Tên sản phẩm": item["Tên sản phẩm"],
+            "Model": item["Model"],
+            "Có thể bán": item["Có thể bán"]
+        }));
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(finalData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo tồn kho");
+
+    const fileName = `Bao_Cao_Ton_Kho_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
 }
 
 // ─── Module: Giữ Hàng ─────────────────────────────────────────
