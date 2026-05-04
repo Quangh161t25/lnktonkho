@@ -144,6 +144,53 @@
             </button>
         </div>
     </div>
+
+    <!-- Side Panel (Drawer) for Thêm Sản Phẩm -->
+    <div id="tkDrawerOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden transition-opacity"
+        onclick="closeTKDrawer()"></div>
+    <div id="tkDrawer"
+        class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[101] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="h-16 border-b border-slate-100 flex items-center justify-between px-6 shrink-0 bg-slate-50/50">
+            <h3 class="font-bold text-slate-800">Thêm Sản Phẩm Mới</h3>
+            <button onclick="closeTKDrawer()" class="p-2 hover:bg-slate-200 rounded-full transition text-slate-400">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">ID Sản phẩm (Mã
+                    SP)</label>
+                <input type="text" id="tkFormId" placeholder="Ví dụ: SP-001"
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-slate-50/30">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Tên sản phẩm</label>
+                <input type="text" id="tkFormName" placeholder="Tên đầy đủ của sản phẩm..."
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Model</label>
+                <input type="text" id="tkFormModel" placeholder="Mã model/quy cách..."
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Tồn đầu kỳ</label>
+                <input type="number" id="tkFormTonDau" placeholder="0"
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+        </div>
+        <div class="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
+            <button onclick="closeTKDrawer()"
+                class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-200 transition">Hủy
+                bỏ</button>
+            <button id="tkSaveBtn" onclick="saveNewProduct()"
+                class="flex-[2] py-2.5 px-4 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
+                <span>Lưu sản phẩm</span>
+            </button>
+        </div>
+    </div>
     <div id="mainApp" class="hidden h-screen flex bg-white text-slate-900 pb-16 md:pb-0">
         <!-- Bottom Nav (Mobile Only) -->
         <nav id="bottomNav"
@@ -603,6 +650,15 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button id="btnAddProduct" onclick="openTKDrawer()"
+                                class="hidden flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-emerald-700 shadow-sm transition"
+                                title="Thêm sản phẩm mới">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                <span>Thêm</span>
+                            </button>
                             <button id="btnUpdateTonKho" onclick="saveTonCuoi()"
                                 class="hidden flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-700 shadow-sm transition">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

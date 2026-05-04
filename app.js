@@ -253,6 +253,12 @@ function updateUserProfileUI() {
         if (canUpload) btnUpdateTonKho.classList.remove('hidden');
         else btnUpdateTonKho.classList.add('hidden');
     }
+
+    const btnAddProduct = document.getElementById('btnAddProduct');
+    if (btnAddProduct) {
+        if (canUpload) btnAddProduct.classList.remove('hidden');
+        else btnAddProduct.classList.add('hidden');
+    }
 }
 
 // ─── Module Navigation ────────────────────────────────────────
@@ -881,6 +887,76 @@ async function saveTonCuoi() {
         alert("Lỗi kết nối khi cập nhật dữ liệu: " + err.message);
     } finally {
         if (btn) btn.innerHTML = originalText;
+    }
+}
+
+// ─── Thêm Sản Phẩm (Mã SP) ───────────────────────────────────
+function openTKDrawer() {
+    document.getElementById('tkDrawerOverlay').classList.remove('hidden');
+    document.getElementById('tkDrawer').classList.remove('translate-x-full');
+
+    // Reset form
+    document.getElementById('tkFormId').value = '';
+    document.getElementById('tkFormName').value = '';
+    document.getElementById('tkFormModel').value = '';
+    document.getElementById('tkFormTonDau').value = '';
+}
+
+function closeTKDrawer() {
+    document.getElementById('tkDrawerOverlay').classList.add('hidden');
+    document.getElementById('tkDrawer').classList.add('translate-x-full');
+}
+
+async function saveNewProduct() {
+    const id = document.getElementById('tkFormId').value.trim();
+    const name = document.getElementById('tkFormName').value.trim();
+    const model = document.getElementById('tkFormModel').value.trim();
+    const tondau = Number(document.getElementById('tkFormTonDau').value || 0);
+
+    if (!id || !name) {
+        alert("Vui lòng nhập Mã SP và Tên SP.");
+        return;
+    }
+
+    const saveBtn = document.getElementById('tkSaveBtn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<span>Đang lưu...</span>';
+    saveBtn.disabled = true;
+
+    try {
+        const token = await getAccessToken();
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${CONFIG.tonKhoSheetName}!A:H:append?valueInputOption=USER_ENTERED`;
+
+        // Chuẩn bị hàng mới: [ID, Tên SP, Model, "", "", "", Tồn đầu, Tồn đầu]
+        const newRow = [id, name, model, "", "", "", tondau, tondau];
+
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                values: [newRow]
+            })
+        });
+
+        if (resp.ok) {
+            alert("Thêm sản phẩm thành công!");
+            closeTKDrawer();
+            await fetchTonKhoData();
+            applyTonKhoFilters();
+        } else {
+            const err = await resp.json();
+            console.error("Add Product Error:", err);
+            alert("Lỗi khi thêm sản phẩm vào Google Sheets.");
+        }
+    } catch (err) {
+        console.error("Save Product Error:", err);
+        alert("Lỗi kết nối khi lưu sản phẩm.");
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
     }
 }
 
