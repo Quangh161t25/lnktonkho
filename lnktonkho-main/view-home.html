@@ -1,0 +1,116 @@
+<div id="module-home" class="max-w-5xl mx-auto py-10 px-6">
+    <div class="mb-10 text-center">
+        <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Chào mừng trở lại!</h2>
+        <p class="text-slate-500">Hệ thống đang hoạt động ổn định. Chọn một chức năng để bắt đầu.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="home-card-nhap" onclick="switchModule('nhap')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-2xl font-bold">
+                ↓</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Danh sách nhập</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Đọc dữ liệu chi tiết từ sheet NHAP_CT.</p>
+        </div>
+
+        <div id="home-card-xuat" onclick="switchModule('xuat')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-2xl font-bold">
+                ↑</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Danh sách xuất</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Đọc dữ liệu chi tiết từ sheet XUAT_CT.</p>
+        </div>
+
+        <div id="home-card-sanpham" onclick="switchModule('sanpham')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                SP</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Danh sách sản phẩm</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Danh mục sản phẩm và tồn tổng.</p>
+        </div>
+
+        <div id="home-card-sanphamkho" onclick="switchModule('sanphamkho')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                KHO</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Sản phẩm kho</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Danh mục sản phẩm theo từng kho.</p>
+        </div>
+
+        <div id="home-card-doisoat" onclick="switchModule('doisoat')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-rose-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                ĐS</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Đối soát</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Đối chiếu tồn hệ thống với file MISA.</p>
+        </div>
+
+        <div id="home-card-nhanvien" onclick="switchModule('nhanvien')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                NV</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Danh sách nhân viên</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Nhân viên từ sheet DSNV.</p>
+        </div>
+
+        <div id="home-card-khachhang" onclick="switchModule('khachhang')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                KH</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Danh sách khách hàng</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Khách hàng NPP và NCC từ sheet DSNV.</p>
+        </div>
+
+        <!-- Card: Giữ Hàng -->
+        <div id="home-card-giuhang" onclick="switchModule('giuhang')"
+            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Quản lý giữ hàng</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Theo dõi và cập nhật trạng thái các sản
+                phẩm đang tạm giữ.</p>
+        </div>
+
+        <!-- Card: Kiểm Kho -->
+        <div id="home-card-kiemkho" onclick="switchModule('kiemkho')"
+            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 104 0m-4 0a2 2 0 114 0m-7 8l2 2 4-4" />
+                </svg>
+            </div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Kiểm kho</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Ghi nhận tồn thực tế, chênh lệch và vị trí
+                kiểm kê.</p>
+        </div>
+
+        <!-- Card: Dashboard -->
+        <div id="home-card-dashboard" onclick="switchModule('dashboard')"
+            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Báo cáo & Phân tích</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Phân tích chuyên sâu về tăng trưởng và
+                hiệu suất kho hàng.</p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nhanvien</title>
+</head>
+<body>
+    <script>
+        window.location.replace('index.html?module=nhanvien');
+    </script>
+    <template data-module-fragment="nhanvien">
+<div id="module-nhanvien" class="hidden h-full flex flex-col">
+                    <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4 shrink-0">
+                        <input id="nhanvienSearchInput" oninput="renderDsnvDirectory('nhanvien')" placeholder="Tìm nhân viên..." class="hidden">
+                        <span id="nhanvienCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
+                        <div class="ml-auto flex items-center gap-2">
+                            <button onclick="openDsnvManualDrawer('nhanvien')" class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold">Thêm = tay</button>
+                            <button onclick="triggerDsnvExcelUpload('nhanvien')" class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold">Thêm = Excel</button>
+                            <button onclick="downloadDsnvTemplate('nhanvien')" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold">Tải Excel mẫu</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
+                        <div class="hidden md:block flex-1 min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                                    <tr><th>ID</th><th>Họ tên</th><th>Hình ảnh</th><th>Giới tính</th><th>Ngày sinh</th><th>Quyền</th><th>Trường</th></tr>
+                                </thead>
+                                <tbody id="nhanvienTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="nhanvienMobileCards" class="md:hidden flex-1 min-h-0 overflow-auto space-y-3"></div>
+                    </div>
+                </div>
+    </template>
+</body>
+</html>

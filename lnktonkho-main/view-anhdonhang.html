@@ -1,0 +1,51 @@
+<div id="module-anhdonhang" class="hidden h-full flex flex-col">
+                    <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
+                        <div>
+                            <p class="text-sm font-bold text-slate-800">Đọc ảnh đơn hàng</p>
+                            <p class="text-xs text-slate-500 mt-1">OCR sẽ dò ID SP theo DS_SP, lấy tên SP theo ID và gợi ý SLG từ dòng ảnh.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 cursor-pointer">
+                                Chụp / tải ảnh
+                                <input id="orderImageInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleOrderImageFile(this)">
+                            </label>
+                            <button onclick="analyzeOrderImage()" class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">Đọc ảnh</button>
+                            <button onclick="downloadOrderImageRowsExcel()" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">Tải Excel kết quả</button>
+                            <button onclick="clearOrderImageModule()" class="px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200">Xóa ảnh</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-0 overflow-auto p-6 space-y-4">
+                        <div class="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-4">
+                            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 space-y-3">
+                                <div class="aspect-[4/3] rounded-lg bg-slate-50 border border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                                    <img id="orderImagePreview" class="hidden w-full h-full object-contain" alt="Ảnh đơn hàng">
+                                    <span id="orderImageEmpty" class="text-xs text-slate-400">Chưa chọn ảnh</span>
+                                </div>
+                                <div id="orderImageStatus" class="text-xs text-slate-500">Chọn ảnh rõ chữ, đủ sáng, ID SP không bị che.</div>
+                                <textarea id="orderImageRawText" readonly class="w-full h-44 p-3 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 bg-slate-50" placeholder="Nội dung OCR sẽ hiển thị ở đây..."></textarea>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[520px]">
+                                <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                    <span id="orderImageResultCount" class="text-xs text-slate-500">0 sản phẩm</span>
+                                    <span class="text-[11px] text-slate-400">Có thể sửa SLG trực tiếp trước khi tải Excel.</span>
+                                </div>
+                                <div class="flex-1 overflow-auto">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                                            <tr>
+                                                <th class="px-3 py-2 w-[180px]">ID SP</th>
+                                                <th class="px-3 py-2">Tên SP</th>
+                                                <th class="px-3 py-2 w-[120px] text-right">SLG</th>
+                                                <th class="px-3 py-2 w-[90px] text-right">Số dòng</th>
+                                                <th class="px-3 py-2">Dòng OCR</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="orderImageTableBody">
+                                            <tr><td colspan="5" class="px-4 py-10 text-center text-slate-400 text-sm">Chưa có dữ liệu.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>

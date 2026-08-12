@@ -1,0 +1,727 @@
+{
+  "version": 1,
+  "spreadsheetId": "1qo4DMUGNd-D7n2hbrRiGIIkR24mArDoKZSeYjdkP8hQ",
+  "sheets": {
+    "DSNV": {
+      "purpose": "Nguồn đăng nhập, danh sách nhân viên và danh sách khách hàng",
+      "readRange": "A1:H10000",
+      "limit": {
+        "maxRows": 10000,
+        "maxColumns": 8
+      },
+      "columns": [
+        "id",
+        "ho_ten",
+        "hinh_anh",
+        "gioi_tinh",
+        "ngay_sinh",
+        "quyen",
+        "mk",
+        "truong"
+      ],
+      "columnsUsed": {
+        "id": "Theo header id, fallback cột A",
+        "ho_ten": "Theo header ho_ten/họ tên/name/ten, fallback cột B",
+        "hinh_anh": "Theo header hinh_anh, fallback cột C",
+        "gioi_tinh": "Theo header gioi_tinh, fallback cột D",
+        "ngay_sinh": "Theo header ngay_sinh, fallback cột E",
+        "role": "Theo header role/quyen, fallback cột F",
+        "password": "Theo header password/mat_khau/mk, fallback cột G",
+        "truong": "Theo header truong, fallback cột H"
+      },
+      "hiddenWebColumns": [
+        "mk"
+      ],
+      "writeFlows": [
+        "manualUpsertById",
+        "excelUpsertById",
+        "downloadTemplate"
+      ],
+      "filters": {
+        "nhanvien": [
+          "NHÂN VIÊN"
+        ],
+        "khachhang": [
+          "KHÁCH HÀNG NPP",
+          "KHÁCH HÀNG NCC"
+        ]
+      },
+      "displayedIn": {
+        "login": [
+          "id"
+        ],
+        "header": [
+          "ho_ten",
+          "role"
+        ],
+        "manualXuatCustomerSuggestions": [
+          "id",
+          "ho_ten",
+          "truong"
+        ],
+        "nhanvien": [
+          "id",
+          "ho_ten",
+          "hinh_anh",
+          "gioi_tinh",
+          "ngay_sinh",
+          "quyen",
+          "truong"
+        ],
+        "khachhang": [
+          "id",
+          "ho_ten",
+          "hinh_anh",
+          "gioi_tinh",
+          "ngay_sinh",
+          "quyen",
+          "truong"
+        ]
+      }
+    },
+    "NX_CT": {
+      "purpose": "Luồng nhập xuất tổng hợp cũ, chỉ giữ làm dữ liệu tương thích nội bộ; không còn module hiển thị",
+      "readRange": "A1:Q60000",
+      "appendRange": "A1:append",
+      "limit": {
+        "maxRows": 60000,
+        "maxColumns": 17,
+        "pageSize": 200
+      },
+      "columns": [
+        {
+          "index": 0,
+          "letter": "A",
+          "key": "id",
+          "used": false,
+          "displayed": false
+        },
+        {
+          "index": 1,
+          "letter": "B",
+          "key": "ngay",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 2,
+          "letter": "C",
+          "key": "truong",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 3,
+          "letter": "D",
+          "key": "ma_don",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 4,
+          "letter": "E",
+          "key": "ma_kh",
+          "used": true,
+          "displayed": false
+        },
+        {
+          "index": 5,
+          "letter": "F",
+          "key": "khach_hang",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 6,
+          "letter": "G",
+          "key": "id_sp",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 7,
+          "letter": "H",
+          "key": "ten_sp",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 8,
+          "letter": "I",
+          "key": "so_luong",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 9,
+          "letter": "J",
+          "key": "don_gia",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 10,
+          "letter": "K",
+          "key": "thanh_tien",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 11,
+          "letter": "L",
+          "key": "nhan_vien",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 12,
+          "letter": "M",
+          "key": "ghi_chu",
+          "used": false,
+          "displayed": false
+        },
+        {
+          "index": 13,
+          "letter": "N",
+          "key": "sl_xac_nhan",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 14,
+          "letter": "O",
+          "key": "trang_thai_kho",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 15,
+          "letter": "P",
+          "key": "nguoi_xac_nhan",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 16,
+          "letter": "Q",
+          "key": "thoi_gian_xac_nhan",
+          "used": true,
+          "displayed": true
+        }
+      ],
+      "displayedIn": {
+        "nhapxuatTable": [
+          "ngay",
+          "truong",
+          "ma_don",
+          "khach_hang",
+          "id_sp",
+          "ten_sp",
+          "so_luong",
+          "don_gia",
+          "thanh_tien",
+          "nhan_vien",
+          "sl_xac_nhan",
+          "trang_thai_kho",
+          "nguoi_xac_nhan",
+          "thoi_gian_xac_nhan"
+        ],
+        "nhapxuatMobileCards": [
+          "ngay",
+          "truong",
+          "ma_don",
+          "khach_hang",
+          "id_sp",
+          "ten_sp",
+          "so_luong",
+          "don_gia",
+          "thanh_tien",
+          "nhan_vien"
+        ],
+        "dashboard": [
+          "ngay",
+          "truong",
+          "id_sp",
+          "ten_sp",
+          "so_luong",
+          "thanh_tien"
+        ],
+        "productCatalog": [
+          "id_sp",
+          "ten_sp"
+        ],
+        "currentQuantityCalculation": [
+          "truong",
+          "id_sp",
+          "so_luong"
+        ]
+      },
+      "writeFlows": {
+        "downloadTemplate": "Tải file mẫu chung cho các nút upload nhập, xuất và trả hàng",
+        "excelUpload": "Ghi nhiều dòng sau khi map file Excel",
+        "manualAdd": "Ghi nhiều dòng từ form Thêm bằng tay"
+      }
+    },
+    "NHAP_CT": {
+      "purpose": "Danh sách nhập chi tiết",
+      "readRange": "A1:Q60000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:Q{row}",
+      "columns": [
+        "id",
+        "ngay",
+        "truong",
+        "mdh",
+        "ma_kh",
+        "ten_khach",
+        "id_sp",
+        "ten_sp",
+        "slg",
+        "don_gia",
+        "thanh_tien",
+        "kho",
+        "id_nv_nhan",
+        "ghi_chu",
+        "loai_hinh",
+        "ngay_dat_hang",
+        "tinh_trang"
+      ],
+      "displayedIn": [
+        "nhap"
+      ],
+      "writeFlows": [
+        "manualUpsertByMdhIdSpKho",
+        "rowDoubleClickEdit",
+        "deleteOrderRowsByMdh",
+        "prepareWarehouseTransferDraftToXuatCt",
+        "excelUpsertByMdhIdSpKho",
+        "downloadTemplate",
+        "downloadFiltered"
+      ],
+      "manualForm": "Danh sách nhập dùng riêng NHAP_CT. Dữ liệu có tình trạng Đã đặt hàng không hiển thị và không cộng tồn kho."
+    },
+    "DU_KIEN_HANG_VE": {
+      "purpose": "Dự kiến hàng về độc lập, không liên quan NHAP_CT và không cộng tồn kho",
+      "readRange": "A1:M60000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:M{row}",
+      "columns": [
+        "id",
+        "stt",
+        "ngay_nhap",
+        "ma_po",
+        "id_sp",
+        "ten_sp",
+        "dvt",
+        "so_luong_du_kien",
+        "ngay_ve_du_kien",
+        "trang_thai",
+        "slg_thuc_nhan",
+        "chenh_lech",
+        "ghi_chu"
+      ],
+      "displayedIn": [
+        "dukien"
+      ],
+      "writeFlows": [
+        "manualUpsertById",
+        "rowDoubleClickEdit",
+        "excelUpsertById",
+        "downloadTemplate",
+        "downloadFiltered"
+      ],
+      "manualForm": "Form riêng 13 cột. Trạng thái chọn từ danh sách cố định; chênh lệch = SLG thực nhận - Số lượng dự kiến."
+    },
+    "XUAT_CT": {
+      "purpose": "Danh sách xuất chi tiết",
+      "readRange": "A1:O60000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:O{row}",
+      "columns": [
+        "id",
+        "ngay",
+        "truong",
+        "mdh",
+        "ma_kh",
+        "ten_khach",
+        "id_sp",
+        "ten_sp",
+        "slg",
+        "don_gia",
+        "thanh_tien",
+        "kho",
+        "id_nv_xuat",
+        "ghi_chu",
+        "loai_hinh"
+      ],
+      "displayedIn": [
+        "xuat"
+      ],
+      "writeFlows": [
+        "manualUpsertByMdhIdSpKho",
+        "rowDoubleClickEdit",
+        "deleteOrderRowsByMdh",
+        "prepareWarehouseTransferDraftToNhapCt",
+        "excelUpsertByMdhIdSpKho",
+        "downloadTemplate",
+        "downloadFiltered"
+      ],
+      "manualForm": "Ma don co nut tao ngau nhien 8 ky tu; khach hang co the de trong; kho chon nhanh cho tat ca san pham hoac doi rieng tung dong; loai_hinh chon bang nut Thuong/BH; nhan vien khong hien thi trong form them/sua va khong hien thi tren web"
+    },
+    "CHUYEN_KHO_CT": {
+      "purpose": "Danh sách điều chuyển sản phẩm giữa các kho",
+      "readRange": "A1:K60000",
+      "appendRange": "A1:append",
+      "columns": [
+        "id",
+        "ngay",
+        "mdh",
+        "id_sp",
+        "ten_sp",
+        "slg",
+        "kho_di",
+        "kho_nhan",
+        "ghi_chu",
+        "tinh_trang",
+        "trang_thai"
+      ],
+      "hiddenWebColumns": [
+        "id"
+      ],
+      "warehouseOptions": [
+        "KHO 1",
+        "KHO 2",
+        "KHO 3",
+        "KHO 4",
+        "KHO 5"
+      ],
+      "filters": [
+        "ngay",
+        "mdh",
+        "id_sp",
+        "kho_di",
+        "kho_nhan",
+        "tinh_trang",
+        "trang_thai"
+      ],
+      "manualForm": "MDH có nút tạo ngẫu nhiên 8 ký tự và kiểm tra không trùng trong CHUYEN_KHO_CT; một phiếu điều chuyển có thể thêm nhiều dòng sản phẩm; có chọn nhanh kho đi và kho nhận cho tất cả sản phẩm, sau đó vẫn đổi riêng từng dòng ID SP, số lượng, kho đi và kho nhận; double-click một dòng để sửa toàn bộ phiếu cùng MDH",
+      "writeFlows": [
+        "manualAppend",
+        "rowDoubleClickEditByMdh",
+        "excelAppend",
+        "autoAppendMissingWarehouseProductsByKhoDiKhoNhanIdSp",
+        "downloadTemplate",
+        "downloadFiltered"
+      ]
+    },
+    "DS_SP": {
+      "purpose": "Danh mục sản phẩm tổng",
+      "readRange": "A1:F10000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "B{row}:F{row}",
+      "columns": [
+        "id",
+        "ten_sp",
+        "model",
+        "anh",
+        "gia_ban",
+        "ghi_chu"
+      ],
+      "webColumns": [
+        "id",
+        "ten_sp",
+        "anh",
+        "ton_dau",
+        "nhap",
+        "xuat",
+        "ton_cuoi"
+      ],
+      "nppWebColumns": [
+        "anh",
+        "id",
+        "ten_sp",
+        "ton_cuoi"
+      ],
+      "nppScope": "Chỉ ID SP có trong XUAT_CT với ma_kh bằng ID tài khoản NPP",
+      "defaultSort": "ton_cuoi desc",
+      "displayedIn": [
+        "sanpham",
+        "productSuggestions"
+      ],
+      "writeFlows": [
+        "manualUpsert",
+        "rowDoubleClickEdit",
+        "excelUpsert",
+        "downloadTemplate",
+        "downloadFilteredWithVirtualStock"
+      ]
+    },
+    "DS_SP_KHO": {
+      "purpose": "Danh mục sản phẩm theo kho và số tồn nhập tay",
+      "readRange": "A1:F50000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:F{row}",
+      "columns": [
+        "id",
+        "kho",
+        "id_sp",
+        "ten_sp",
+        "ton_dau",
+        "ton_sau"
+      ],
+      "webColumns": [
+        "kho",
+        "id_sp",
+        "ten_sp",
+        "ton_dau",
+        "nhap",
+        "xuat",
+        "nhap_ck",
+        "xuat_ck",
+        "ton_cuoi"
+      ],
+      "warehouseOptions": [
+        "KHO 1",
+        "KHO 2",
+        "KHO 3",
+        "KHO 4",
+        "KHO 5"
+      ],
+      "defaultSort": "ton_cuoi desc",
+      "displayedIn": [
+        "sanphamkho",
+        "kiemkhoSlgTon",
+        "giuHangAvailable"
+      ],
+      "virtualColumns": {
+        "nhap": "Tổng slg NHAP_CT theo kho + id_sp",
+        "xuat": "Tổng slg XUAT_CT theo kho + id_sp",
+        "nhap_ck": "Tổng slg CHUYEN_KHO_CT khi kho_nhan + id_sp trùng kho + id_sp của DS_SP_KHO",
+        "xuat_ck": "Tổng slg CHUYEN_KHO_CT khi kho_di + id_sp trùng kho + id_sp của DS_SP_KHO",
+        "ton_cuoi": "ton_dau + nhap - xuat + nhap_ck - xuat_ck"
+      },
+      "writeFlows": [
+        "autoAppendFromNhapXuatByKhoIdSp",
+        "autoAppendFromChuyenKhoByKhoDiKhoNhanIdSp",
+        "manualUpsertByKhoIdSp",
+        "rowDoubleClickEdit",
+        "excelUpsertByKhoIdSp",
+        "downloadTemplate",
+        "downloadFilteredWithVirtualStock"
+      ]
+    },
+    "DOI_SOAT": {
+      "purpose": "Doi soat ton MISA theo ID san pham, chi luu 3 cot vat ly",
+      "readRange": "A1:C50000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:C{row}",
+      "columns": [
+        "id",
+        "ten_sp",
+        "ton_misa"
+      ],
+      "uploadColumns": [
+        "id",
+        "ton_misa"
+      ],
+      "rules": {
+        "id": "Lay tu cot A cua file upload va tu tat ca id_sp trong DS_SP",
+        "ten_sp": "Lay tu DS_SP theo id; neu ID khong co trong DS_SP thi de trong hoac lay ten cu neu co",
+        "ton_misa": "Lay tu cot C cua file upload; ID trong DS_SP nhung khong co trong file thi bang 0"
+      },
+      "filters": [
+        "thua",
+        "du",
+        "thieu"
+      ],
+      "displayedIn": [
+        "doisoat"
+      ],
+      "writeFlows": [
+        "replaceAllFromExcelColumnAColumnC",
+        "autoAddAllDsSpIdsWithTonMisaZeroWhenMissing"
+      ],
+      "virtualColumns": {
+        "ton_cuoi": "Tinh ao tu Ton cuoi cua module Danh sach san pham, khong ghi vao sheet DOI_SOAT",
+        "chenh_lech": "ton_cuoi ao - ton_misa, khong ghi vao sheet DOI_SOAT"
+      },
+      "uploadInput": "Doc cot A = id, cot C = ton_misa; bo qua cot B cua file upload; xoa toan bo du lieu DOI_SOAT cu truoc khi ghi moi",
+      "webColumns": [
+        "id",
+        "ten_sp",
+        "ton_cuoi",
+        "ton_misa",
+        "chenh_lech"
+      ]
+    },
+    "KIEM_KHO": {
+      "purpose": "Phiếu kiểm kho",
+      "readRange": "A1:H50000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:H{row}",
+      "limit": {
+        "maxRows": 50000,
+        "maxColumns": 8,
+        "pageSize": 200
+      },
+      "columns": [
+        {
+          "index": 0,
+          "letter": "A",
+          "key": "id",
+          "used": true,
+          "displayed": false
+        },
+        {
+          "index": 1,
+          "letter": "B",
+          "key": "ngay",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 2,
+          "letter": "C",
+          "key": "id_sp",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 3,
+          "letter": "D",
+          "key": "slg_ton",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 4,
+          "letter": "E",
+          "key": "thuc_te",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 5,
+          "letter": "F",
+          "key": "slg_lech",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 6,
+          "letter": "G",
+          "key": "vi_tri",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 7,
+          "letter": "H",
+          "key": "ghi_chu",
+          "used": true,
+          "displayed": true
+        }
+      ],
+      "displayedIn": {
+        "kiemkhoTable": [
+          "ngay",
+          "id_sp",
+          "ten_sp_lookup",
+          "slg_ton",
+          "thuc_te",
+          "slg_lech",
+          "vi_tri",
+          "ghi_chu"
+        ],
+        "kiemkhoMobileCards": [
+          "ngay",
+          "id_sp",
+          "ten_sp_lookup",
+          "slg_ton",
+          "thuc_te",
+          "slg_lech",
+          "vi_tri",
+          "ghi_chu"
+        ],
+        "locationSuggestions": [
+          "vi_tri"
+        ],
+        "productSuggestions": "Ưu tiên tra cứu id, ten_sp từ DS_SP",
+        "slgTon": "Cộng tồn cuối ảo theo id_sp từ DS_SP_KHO: ton_dau + nhập - xuất"
+      }
+    },
+    "GIU_HANG": {
+      "purpose": "Danh sách giữ hàng/tạm giữ",
+      "readRange": "A1:F50",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:F{row}",
+      "clearRange": "A2:F1000",
+      "limit": {
+        "maxRowsRead": 50,
+        "maxColumns": 6
+      },
+      "columns": [
+        {
+          "index": 0,
+          "letter": "A",
+          "key": "id",
+          "used": true,
+          "displayed": false
+        },
+        {
+          "index": 1,
+          "letter": "B",
+          "key": "id_nv",
+          "used": true,
+          "displayed": false
+        },
+        {
+          "index": 2,
+          "letter": "C",
+          "key": "ten_nv",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 3,
+          "letter": "D",
+          "key": "id_sp",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 4,
+          "letter": "E",
+          "key": "ten_sp",
+          "used": true,
+          "displayed": true
+        },
+        {
+          "index": 5,
+          "letter": "F",
+          "key": "so_luong",
+          "used": true,
+          "displayed": true
+        }
+      ],
+      "displayedIn": {
+        "giuhangTable": [
+          "ten_nv",
+          "id_sp",
+          "ten_sp",
+          "so_luong"
+        ],
+        "giuhangMobileCards": [
+          "ten_nv",
+          "id_sp",
+          "ten_sp",
+          "so_luong"
+        ],
+        "availableQuantityCalculation": [
+          "id_sp",
+          "so_luong"
+        ]
+      }
+    }
+  }
+}

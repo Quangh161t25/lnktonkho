@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- JSRSAsign for JWT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.27/jsrsasign-all-min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Tesseract.js for browser OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#ffffff',
+                        card: '#ffffff',
+                        border: '#e2e8f0',
+                        primary: { DEFAULT: '#2563eb', foreground: '#ffffff' },
+                        muted: { DEFAULT: '#f1f5f9', foreground: '#64748b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-entry-module="login">
+<div id="loginScreen" class="inset-0 z-login flex-center bg-login-bg">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm border border-slate-200">
+            <div class="flex justify-center mb-6">
+                <img src="icon.png" alt="VG Logo" class="w-16 h-16 rounded-2xl shadow-sm">
+            </div>
+            <!-- Loading Indicator -->
+            <div id="loginLoading" class="hidden text-center py-4">
+                <div class="spinner"></div>
+                <p class="text-xs text-slate-500 italic">Đang tải dữ liệu nhân viên...</p>
+            </div>
+            <!-- Form Đăng nhập -->
+            <div id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-slate-500">Tài khoản</label>
+                    <input type="text" id="usernameInput"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nhập ID nhân viên">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-slate-500">Mật khẩu</label>
+                    <input type="password" id="passwordInput"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="••••••••" onkeydown="if(event.key==='Enter') handleLogin()">
+                </div>
+                <button onclick="handleLogin()"
+                    class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">Đăng
+                    nhập</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.js"></script>
+</body>
+</html>

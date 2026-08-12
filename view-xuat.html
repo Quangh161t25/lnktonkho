@@ -1,0 +1,83 @@
+<div id="module-xuat" class="hidden h-full flex flex-col">
+                    <div
+                        class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4 shrink-0">
+                        <input id="xuatSearchInput" oninput="renderSimpleSheetModule('xuat', true)"
+                            placeholder="Tìm trong XUAT_CT..." class="hidden">
+                        <span id="xuatCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
+                        <div class="ml-auto flex items-center gap-2">
+                            <button onclick="openSimpleSheetManualDrawer('xuat')"
+                                class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Thêm
+                                = tay</button>
+                            <button onclick="triggerSimpleSheetExcelUpload('xuat')"
+                                class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">Thêm
+                                = Excel</button>
+                            <button onclick="downloadSimpleSheetTemplate('xuat')"
+                                class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">Tải
+                                Excel mẫu</button>
+                            <button onclick="downloadFilteredSimpleSheetExcel('xuat')"
+                                class="px-3 py-2 rounded-lg bg-slate-700 text-white text-xs font-bold hover:bg-slate-800">Tải
+                                Excel theo lọc</button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap items-center gap-2 shrink-0">
+                        <input type="date" id="xuatDateFrom" onchange="renderSimpleSheetModule('xuat', true)"
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+                        <span class="text-slate-400">→</span>
+                        <input type="date" id="xuatDateTo" onchange="renderSimpleSheetModule('xuat', true)"
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+                        <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+                            <button onclick="setSimpleSheetQuickDate('xuat', 'today')"
+                                class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">HÔM NAY</button>
+                            <button onclick="setSimpleSheetQuickDate('xuat', 'week')"
+                                class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">TUẦN NÀY</button>
+                            <button onclick="setSimpleSheetQuickDate('xuat', 'month')"
+                                class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">THÁNG NÀY</button>
+                        </div>
+                        <input id="xuatFilterMdh" oninput="renderSimpleSheetModule('xuat', true)"
+                            placeholder="Lọc MDH..."
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
+                        <input id="xuatFilterMaKh" oninput="renderSimpleSheetModule('xuat', true)"
+                            placeholder="Lọc Mã KH..."
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
+                        <input id="xuatFilterIdSp" oninput="renderSimpleSheetModule('xuat', true)"
+                            placeholder="Lọc ID SP..."
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
+                        <select id="xuatFilterKho" onchange="renderSimpleSheetModule('xuat', true)"
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
+                            <option value="">Tất cả kho</option>
+                            <option value="KHO 1">KHO 1</option>
+                            <option value="KHO 2">KHO 2</option>
+                            <option value="KHO 3">KHO 3</option>
+                            <option value="KHO 4">KHO 4</option>
+                            <option value="KHO 5">KHO 5</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
+                        <div
+                            class="hidden md:block flex-1 min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                                    <tr>
+                                        <th>Ngày</th>
+                                        <th>Trường</th>
+                                        <th>MDH</th>
+                                        <th>Mã KH</th>
+                                        <th>Tên khách</th>
+                                        <th>ID SP</th>
+                                        <th>Tên SP</th>
+                                        <th>SLG</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                        <th>Kho</th>
+                                        <th>Ghi chú</th>
+                                        <th>Loại hình</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="xuatTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="xuatMobileCards" class="md:hidden flex-1 min-h-0 overflow-auto space-y-3"></div>
+                        <div id="xuatPagination"></div>
+                    </div>
+                </div>

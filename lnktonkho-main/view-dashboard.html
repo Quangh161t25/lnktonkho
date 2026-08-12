@@ -1,0 +1,201 @@
+<div id="module-dashboard" class="hidden h-full flex flex-col">
+                    <!-- Dashboard Filter Bar -->
+                    <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-4 shrink-0">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <!-- Date Range with +/- -->
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                    <button onclick="changeDate('dbFromDate', -1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbFromDate" onchange="renderDashboard()"
+                                        class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbFromDate', 1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                </div>
+                                <span class="text-slate-300">→</span>
+                                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                    <button onclick="changeDate('dbToDate', -1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">−</button>
+                                    <input type="date" id="dbToDate" onchange="renderDashboard()"
+                                        class="bg-transparent border-none text-xs outline-none px-1">
+                                    <button onclick="changeDate('dbToDate', 1)"
+                                        class="p-1 px-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded transition">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Select -->
+                            <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                                <button onclick="setQuickDate('today')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Hôm
+                                    nay</button>
+                                <button onclick="setQuickDate('week')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tuần
+                                    này</button>
+                                <button onclick="setQuickDate('month')"
+                                    class="px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white hover:shadow-sm transition">Tháng
+                                    này</button>
+                            </div>
+
+                            <!-- Type Buttons -->
+                            <div id="dbTypeButtons" class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                                <button onclick="setDbType('')" id="btn-type-all"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg bg-white shadow-sm transition active-type">Tất
+                                    cả</button>
+                                <button onclick="setDbType('NHẬP')" id="btn-type-nhap"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Nhập</button>
+                                <button onclick="setDbType('XUẤT')" id="btn-type-xuat"
+                                    class="px-4 py-1.5 text-[10px] font-bold uppercase rounded-lg hover:bg-white transition">Xuất</button>
+                                <input type="hidden" id="dbTruong" value="">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4">
+                            <!-- Advanced Inputs with Datalists -->
+                            <div class="relative flex-1 min-w-[150px]">
+                                <input type="text" id="dbIdSp" oninput="renderDashboard()" list="dl-products"
+                                    placeholder="ID hoặc Tên SP..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-products"></datalist>
+                            </div>
+                            <div class="relative flex-1 min-w-[120px]">
+                                <input type="text" id="dbMaKh" oninput="renderDashboard()" list="dl-customers"
+                                    placeholder="Mã KH..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-customers"></datalist>
+                            </div>
+                            <div class="relative flex-1 min-w-[120px]">
+                                <input type="text" id="dbIdNv" oninput="renderDashboard()" list="dl-employees"
+                                    placeholder="ID NV..."
+                                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <datalist id="dl-employees"></datalist>
+                            </div>
+
+                            <button onclick="refreshDashboard()"
+                                class="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
+                                title="Làm mới báo cáo">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-auto p-6 space-y-8 bg-slate-50/30">
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <div
+                                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
+                                <h4
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        Sản phẩm Nhập
+                                    </div>
+                                </h4>
+                                <div id="importTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead
+                                            class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Mã SP</th>
+                                                <th class="py-2">Tên SP</th>
+                                                <th class="py-2 text-right">SL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="importTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
+                                <h4
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                        Sản phẩm Xuất
+                                    </div>
+                                </h4>
+                                <div id="exportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead
+                                            class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Mã SP</th>
+                                                <th class="py-2">Tên SP</th>
+                                                <th class="py-2 text-right">SL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Daily Trends -->
+                            <div
+                                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
+                                <h4
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                    Nhập Theo Ngày
+                                </h4>
+                                <div id="dailyImportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead
+                                            class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Ngày</th>
+                                                <th class="py-2 text-right">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dailyImportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[350px] flex flex-col transition-all hover:shadow-md">
+                                <h4
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-orange-400"></span>
+                                    Xuất Theo Ngày
+                                </h4>
+                                <div id="dailyExportTable" class="flex-1 min-h-0 overflow-auto no-scrollbar text-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead
+                                            class="sticky top-0 bg-white border-b border-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                            <tr>
+                                                <th class="py-2">Ngày</th>
+                                                <th class="py-2 text-right">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dailyExportTableBody" class="divide-y divide-slate-50"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                            <div
+                                class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
+                                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Báo cáo tổng
+                                    hợp sản phẩm</h4>
+                                <span id="dbTableCount"
+                                    class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">0
+                                    sản phẩm</span>
+                            </div>
+                            <div class="max-h-[500px] overflow-auto no-scrollbar">
+                                <table class="w-full text-left border-collapse">
+                                    <thead
+                                        class="bg-white border-b border-slate-200 sticky top-0 z-10 text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                                        <tr>
+                                            <th class="px-6 py-4">ID_SP</th>
+                                            <th class="px-6 py-4">Sản Phẩm</th>
+                                            <th class="px-6 py-4 text-right text-blue-500">Nhập + Trả lại</th>
+                                            <th class="px-6 py-4 text-right text-orange-500">Xuất</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dbTableBody" class="divide-y divide-slate-50"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>

@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "modules": {
+    "home": "Trang chủ",
+    "nhap": "Danh sách nhập",
+    "dukien": "Dự kiến hàng về",
+    "xuat": "Danh sách xuất",
+    "chuyenkho": "Điều chuyển kho",
+    "sanpham": "Danh sách sản phẩm",
+    "sanphamkho": "Danh sách sản phẩm kho",
+    "doisoat": "Đối soát",
+    "nhanvien": "Danh sách nhân viên",
+    "khachhang": "Danh sách khách hàng"
+  },
+  "roles": {
+    "ADMIN": {
+      "modules": [
+        "home",
+        "nhap",
+        "dukien",
+        "xuat",
+        "chuyenkho",
+        "sanpham",
+        "sanphamkho",
+        "doisoat",
+        "nhanvien",
+        "khachhang"
+      ],
+      "actions": [
+        "nx.manualAdd",
+        "nx.upload",
+        "nx.confirmWarehouse",
+        "sanpham.manage",
+        "doisoat.manage"
+      ]
+    },
+    "kt": {
+      "modules": [
+        "nhap",
+        "dukien",
+        "xuat",
+        "chuyenkho",
+        "sanpham",
+        "sanphamkho",
+        "doisoat"
+      ],
+      "actions": [
+        "nx.upload",
+        "doisoat.manage"
+      ]
+    },
+    "KHO": {
+      "modules": [
+        "nhap",
+        "dukien",
+        "xuat",
+        "chuyenkho",
+        "sanphamkho"
+      ],
+      "actions": [
+        "nx.confirmWarehouse"
+      ]
+    },
+    "NPP": {
+      "modules": [
+        "sanpham",
+        "xuat"
+      ],
+      "actions": []
+    },
+    "KD": {
+      "modules": [
+        "sanpham"
+      ],
+      "actions": []
+    },
+    "NVKD": {
+      "modules": [
+        "sanpham"
+      ],
+      "actions": []
+    }
+  },
+  "dataScopes": {
+    "NPP": {
+      "sanpham": "Chỉ xem Ảnh, ID, Tên SP, Tồn cuối của ID SP đã xuất trong XUAT_CT theo ma_kh bằng id tài khoản",
+      "xuat": "Chỉ xem đơn xuất trong XUAT_CT theo ma_kh bằng id tài khoản"
+    },
+    "KD": {
+      "sanpham": "Xem ID, Ten SP, Ton cuoi tong"
+    },
+    "NVKD": {
+      "nx": "Chỉ xem dữ liệu theo id_nv/nhân viên bằng id tài khoản"
+    }
+  },
+  "userRestrictions": {
+    "KH00206": {
+      "hiddenProductIds": [
+        "TK-0348",
+        "TK-0318",
+        "TK-0320",
+        "TK-0324"
+      ]
+    }
+  }
+}
