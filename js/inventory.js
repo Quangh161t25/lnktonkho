@@ -781,8 +781,8 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
     } else if (moduleName === 'xuat') {
         populateWarehouseFilterDropdown('xuatFilterKho');
     } else if (moduleName === 'chuyenkho') {
-        populateWarehouseFilterDropdown('chuyenkhoFilterKhoDi');
-        populateWarehouseFilterDropdown('chuyenkhoFilterKhoNhan');
+        populateWarehouseFilterDropdown('chuyenkhoFilterKhoDi', true, true);
+        populateWarehouseFilterDropdown('chuyenkhoFilterKhoNhan', true, true);
     }
     const movementTotals = moduleName === 'sanphamkho' ? getWarehouseMovementTotals() : new Map();
     if (moduleName === 'sanpham') movementTotals.productAggregates = getProductAggregates();
@@ -791,6 +791,7 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
     const rows = sortSimpleModuleRows(moduleName, getFilteredSimpleModuleRows(moduleName), movementTotals);
     renderSimpleModuleSortIndicators(moduleName);
     if (count) count.textContent = `${rows.length} bản ghi`;
+    if (moduleName === 'ton_npp') renderTonNppDashboard(rows, movementTotals);
 
     const page = simpleModulePages[moduleName] || 1;
     const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -1955,6 +1956,40 @@ function handleSimpleSheetExcelUpload(input) {
                 alert("Đối soát dữ liệu thành công.");
                 return;
             }
+            if (simpleSheetUploadModule === 'ton_npp') {
+                if (rows.length <= 1) return alert("File Excel chưa có dữ liệu.");
+                const headers = rows[0].map(value => (value || '').toString().trim().toLowerCase());
+                const idIdx = headers.indexOf('id');
+                const ngayIdx = headers.findIndex(h => ['ngay', 'ngày', 'date', 'thoi_gian'].includes(h));
+                const maKhIdx = headers.findIndex(h => ['ma_kh', 'mã kh', 'mã khách hàng', 'mã npp', 'ma_npp', 'khach_hang'].includes(h));
+                const idSpIdx = headers.findIndex(h => ['id_sp', 'mã sp', 'ma_sp', 'mã sản phẩm', 'san_pham'].includes(h));
+                const tonCuoiIdx = headers.findIndex(h => ['ton_cuoi', 'tồn cuối', 'tồn', 'ton', 'slg', 'so_luong', 'số lượng'].includes(h));
+
+                if (ngayIdx === -1 || maKhIdx === -1 || idSpIdx === -1 || tonCuoiIdx === -1) {
+                    const missing = [];
+                    if (ngayIdx === -1) missing.push('Ngày (ngay)');
+                    if (maKhIdx === -1) missing.push('Mã KH (ma_kh)');
+                    if (idSpIdx === -1) missing.push('ID SP (id_sp)');
+                    if (tonCuoiIdx === -1) missing.push('Tồn cuối (ton_cuoi)');
+                    return alert(`File Excel Tồn NPP thiếu các cột bắt buộc: ${missing.join(', ')}`);
+                }
+
+                const values = rows.slice(1).map((row, rIdx) => {
+                    const rowId = (idIdx !== -1 && row[idIdx]) ? row[idIdx].toString().trim() : generateAutoTonNppId(rIdx + 1);
+                    const rawNgay = row[ngayIdx] ?? '';
+                    const ngay = formatDateDDMMYYYY(rawNgay) || rawNgay;
+                    const maKh = (row[maKhIdx] ?? '').toString().trim();
+                    const idSp = parseProductIdInput((row[idSpIdx] ?? '').toString().trim());
+                    const tonCuoi = cleanNumber(row[tonCuoiIdx] ?? 0);
+                    return [rowId, ngay, maKh, idSp, tonCuoi];
+                }).filter(r => r[2] && r[3]);
+
+                if (!values.length) return alert("Không tìm thấy dòng dữ liệu hợp lệ (cần có Mã KH và ID SP).");
+                if (!confirm(`Tải ${values.length} dòng lên ${config.sheetName()}?`)) return;
+                await upsertTonNppRows(values);
+                alert("Tải Excel Tồn NPP thành công.");
+                return;
+            }
             if (rows.length <= 1) return alert("File Excel chưa có dữ liệu.");
             const headers = rows[0].map(value => (value || '').toString().trim().toLowerCase());
             const indexes = config.columns.map(column => headers.indexOf(column));
@@ -2940,16 +2975,19 @@ function populateWarehouseProductFilterList() {
         .join('');
 }
 
-function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
+function populateWarehouseFilterDropdown(selectId, includeAllOption = true, useAllWarehouses = false) {
     const select = document.getElementById(selectId);
     if (!select) return;
-    const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
-        ? getAllowedWarehousesForCurrentUser()
-        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    const allowed = useAllWarehouses
+        ? ((typeof getWarehouseOptions === 'function') ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'])
+        : ((typeof getAllowedWarehousesForCurrentUser === 'function')
+            ? getAllowedWarehousesForCurrentUser()
+            : ((typeof getWarehouseOptions === 'function') ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']));
     const currentVal = (select.value || '').trim();
     let html = '';
     if (includeAllOption && allowed.length > 1) {
-        html += '<option value="">Tất cả kho</option>';
+        const defaultLabel = selectId.includes('KhoDi') ? 'Tất cả kho đi' : (selectId.includes('KhoNhan') ? 'Tất cả kho nhận' : 'Tất cả kho');
+        html += `<option value="">${defaultLabel}</option>`;
     }
     allowed.forEach(k => {
         html += `<option value="${escAttr(k)}">${escAttr(k)}</option>`;
@@ -2957,7 +2995,7 @@ function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
     select.innerHTML = html;
     if (currentVal && allowed.some(a => a.toLowerCase() === currentVal.toLowerCase())) {
         select.value = currentVal;
-    } else if (allowed.length === 1) {
+    } else if (allowed.length === 1 && !includeAllOption) {
         select.value = allowed[0];
     } else if (includeAllOption) {
         select.value = '';
@@ -2967,15 +3005,15 @@ function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
 }
 
 function populateWarehouseTransferCommonDropdowns() {
-    const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
-        ? getAllowedWarehousesForCurrentUser()
-        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    const allWarehouses = (typeof getWarehouseOptions === 'function')
+        ? getWarehouseOptions()
+        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
     ['warehouseTransferCommonFrom', 'warehouseTransferCommonTo'].forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
         const curVal = select.value;
-        select.innerHTML = '<option value="">Chọn kho...</option>' + allowed.map(k => `<option value="${escAttr(k)}">${escAttr(k)}</option>`).join('');
-        if (curVal && allowed.includes(curVal)) select.value = curVal;
+        select.innerHTML = '<option value="">Chọn kho...</option>' + allWarehouses.map(k => `<option value="${escAttr(k)}">${escAttr(k)}</option>`).join('');
+        if (curVal && allWarehouses.includes(curVal)) select.value = curVal;
     });
 }
 
@@ -3732,6 +3770,11 @@ function closeTonNppManualDrawer() {
     setTimeout(() => overlay.classList.add('hidden'), 300);
 }
 
+function generateAutoTonNppId(index = 1) {
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `TNPP-${Date.now().toString().slice(-6)}${index}-${random}`;
+}
+
 async function upsertTonNppRows(rows) {
     const config = SIMPLE_SHEET_MODULES.ton_npp;
     if (!config || !rows.length) return false;
@@ -3746,7 +3789,10 @@ async function upsertTonNppRows(rows) {
 
     const updates = [];
     const appends = [];
-    rows.forEach(r => {
+    rows.forEach((r, idx) => {
+        if (!r[0] || !r[0].toString().trim()) {
+            r[0] = generateAutoTonNppId(idx + 1);
+        }
         const id = (r[0] || '').toString().trim().toLowerCase();
         if (id && existingById.has(id)) {
             const sheetRow = existingById.get(id);
@@ -3828,3 +3874,238 @@ async function saveTonNppManual() {
     }
 }
 
+
+
+// ─── Module: Tồn NPP Dashboard ──────────────────────────────────
+let tonNppDistributorChartInstance = null;
+let tonNppProductsChartInstance = null;
+let isTonNppDashboardCollapsed = localStorage.getItem('erp_ton_npp_dashboard_collapsed') === 'true';
+
+function toggleTonNppDashboard() {
+    isTonNppDashboardCollapsed = !isTonNppDashboardCollapsed;
+    localStorage.setItem('erp_ton_npp_dashboard_collapsed', isTonNppDashboardCollapsed.toString());
+    applyTonNppDashboardCollapsedState();
+}
+
+function applyTonNppDashboardCollapsedState() {
+    const content = document.getElementById('tonNppDashboardContent');
+    const icon = document.getElementById('tonNppToggleIcon');
+    const text = document.getElementById('tonNppToggleText');
+    if (!content) return;
+    if (isTonNppDashboardCollapsed) {
+        content.classList.add('hidden');
+        if (icon) icon.textContent = '▼';
+        if (text) text.textContent = 'Mở rộng';
+    } else {
+        content.classList.remove('hidden');
+        if (icon) icon.textContent = '▲';
+        if (text) text.textContent = 'Thu gọn';
+    }
+}
+
+function renderTonNppDashboard(filteredRows, movementTotals) {
+    applyTonNppDashboardCollapsedState();
+    if (!document.getElementById('tonNppDashboardWrapper')) return;
+
+    const rows = filteredRows || [];
+    const map = movementTotals?.tonNppMovements || getTonNppMovementMap();
+
+    let totalTonCuoi = 0;
+    let totalSellIn = 0;
+    let totalSellOut = 0;
+    let totalTonDau = 0;
+    const nppSet = new Set();
+    const nppStatsMap = new Map(); // maKh -> { maKh, tenKh, tonCuoi, nhap, xuat, tonDau }
+    const productStatsMap = new Map(); // idSp -> { idSp, tenSp, tonCuoi }
+
+    rows.forEach(r => {
+        const id = (r[0] || '').toString().trim();
+        const maKh = (r[2] || '').toString().trim();
+        const idSp = (r[3] || '').toString().trim();
+        const tonCuoi = cleanNumber(r[4]);
+
+        const mv = map.get(id) || { tonDau: 0, nhap: 0, xuat: 0, tonCuoi };
+        totalTonCuoi += tonCuoi;
+        totalSellIn += mv.nhap;
+        totalSellOut += mv.xuat;
+        totalTonDau += mv.tonDau;
+
+        if (maKh) {
+            nppSet.add(maKh.toUpperCase());
+            const tenKh = getCustomerNameById(maKh) || maKh;
+            if (!nppStatsMap.has(maKh)) {
+                nppStatsMap.set(maKh, { maKh, tenKh, tonCuoi: 0, nhap: 0, xuat: 0, tonDau: 0 });
+            }
+            const st = nppStatsMap.get(maKh);
+            st.tonCuoi += tonCuoi;
+            st.nhap += mv.nhap;
+            st.xuat += mv.xuat;
+            st.tonDau += mv.tonDau;
+        }
+
+        if (idSp) {
+            const tenSp = getProductNameById(idSp) || idSp;
+            if (!productStatsMap.has(idSp)) {
+                productStatsMap.set(idSp, { idSp, tenSp, tonCuoi: 0 });
+            }
+            productStatsMap.get(idSp).tonCuoi += tonCuoi;
+        }
+    });
+
+    const sellThroughRate = (totalTonDau + totalSellIn) > 0
+        ? Math.min(100, Math.round((totalSellOut / (totalTonDau + totalSellIn)) * 1000) / 10)
+        : (totalSellOut > 0 ? 100 : 0);
+
+    // Update KPI UI
+    const kpiStock = document.getElementById('tonNppKpiTotalStock');
+    const kpiNpp = document.getElementById('tonNppKpiNppCount');
+    const kpiIn = document.getElementById('tonNppKpiSellIn');
+    const kpiOut = document.getElementById('tonNppKpiSellOut');
+    const kpiRate = document.getElementById('tonNppKpiSellThrough');
+
+    if (kpiStock) kpiStock.textContent = formatNum(totalTonCuoi);
+    if (kpiNpp) kpiNpp.textContent = `${nppSet.size} Nhà phân phối phát sinh tồn`;
+    if (kpiIn) kpiIn.textContent = formatNum(totalSellIn);
+    if (kpiOut) kpiOut.textContent = formatNum(totalSellOut);
+    if (kpiRate) {
+        kpiRate.textContent = `${sellThroughRate}%`;
+        kpiRate.className = `text-xl sm:text-2xl font-extrabold ${sellThroughRate >= 50 ? 'text-emerald-400' : (sellThroughRate >= 25 ? 'text-amber-300' : 'text-rose-400')}`;
+    }
+
+    // Smart Alert
+    const alertEl = document.getElementById('tonNppAlertText');
+    if (alertEl) {
+        const slowNpps = Array.from(nppStatsMap.values()).filter(item => item.tonCuoi >= 20 && item.xuat === 0);
+        if (slowNpps.length > 0) {
+            alertEl.innerHTML = `<strong class="text-amber-300">Lưu ý:</strong> Có <strong class="text-white">${slowNpps.length} NPP</strong> đang có tồn kho (${formatNum(slowNpps.reduce((s, x) => s + x.tonCuoi, 0))} SP) nhưng chưa phát sinh xuất bán (Sell-out) trong kỳ lọc.`;
+        } else if (totalTonCuoi > 0) {
+            alertEl.innerHTML = `<strong class="text-teal-300">Tốt:</strong> Hệ thống ${nppSet.size} Nhà phân phối đang luân chuyển hàng hóa đều đặn với tỷ lệ tiêu thụ đạt <strong>${sellThroughRate}%</strong>.`;
+        } else {
+            alertEl.textContent = 'Chưa có phát sinh dữ liệu tồn trong khoảng thời gian hoặc bộ lọc đang chọn.';
+        }
+    }
+
+    if (typeof Chart === 'undefined') return;
+
+    // Chart 1: Top Distributors
+    const distCanvas = document.getElementById('tonNppChartDistributors');
+    if (distCanvas) {
+        const topDistributors = Array.from(nppStatsMap.values())
+            .sort((a, b) => b.tonCuoi - a.tonCuoi)
+            .slice(0, 6);
+
+        const labels = topDistributors.map(d => d.tenKh.length > 18 ? d.tenKh.slice(0, 16) + '…' : d.tenKh);
+        const tonData = topDistributors.map(d => d.tonCuoi);
+        const xuatData = topDistributors.map(d => d.xuat);
+
+        if (tonNppDistributorChartInstance) {
+            tonNppDistributorChartInstance.destroy();
+            tonNppDistributorChartInstance = null;
+        }
+
+        tonNppDistributorChartInstance = new Chart(distCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels.length ? labels : ['Chưa có dữ liệu'],
+                datasets: [
+                    {
+                        label: 'Tồn cuối',
+                        data: tonData.length ? tonData : [0],
+                        backgroundColor: '#14b8a6',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Sell-out',
+                        data: xuatData.length ? xuatData : [0],
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' }, boxWidth: 12 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${formatNum(ctx.raw)} SP`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Chart 2: Top Products
+    const prodCanvas = document.getElementById('tonNppChartProducts');
+    if (prodCanvas) {
+        const topProducts = Array.from(productStatsMap.values())
+            .sort((a, b) => b.tonCuoi - a.tonCuoi)
+            .slice(0, 7);
+
+        const pLabels = topProducts.map(p => {
+            const name = p.tenSp || p.idSp;
+            return name.length > 20 ? name.slice(0, 18) + '…' : name;
+        });
+        const pData = topProducts.map(p => p.tonCuoi);
+
+        if (tonNppProductsChartInstance) {
+            tonNppProductsChartInstance.destroy();
+            tonNppProductsChartInstance = null;
+        }
+
+        tonNppProductsChartInstance = new Chart(prodCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: pLabels.length ? pLabels : ['Chưa có dữ liệu'],
+                datasets: [
+                    {
+                        label: 'Tồn NPP',
+                        data: pData.length ? pData : [0],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Tồn tại NPP: ${formatNum(ctx.raw)} SP`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+}

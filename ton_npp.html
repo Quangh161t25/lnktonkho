@@ -49,6 +49,93 @@
         <input id="ton_nppFilterIdSp" oninput="renderSimpleSheetModule('ton_npp', true)"
             placeholder="Lọc ID SP..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
     </div>
+        <!-- Dashboard Tồn NPP -->
+    <div id="tonNppDashboardWrapper" class="px-6 pt-4 pb-2 shrink-0">
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md border border-slate-700/60">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-400 font-bold text-sm">
+                        📊
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white tracking-wide">DASHBOARD TỒN NPP & PHÂN PHỐI</h3>
+                        <p class="text-[11px] text-slate-400">Tổng quan chỉ số luân chuyển hàng hóa và hiệu suất tiêu thụ Sell-in / Sell-out</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleTonNppDashboard()" id="tonNppDashboardToggleBtn"
+                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-slate-300 transition flex items-center gap-1.5">
+                    <span id="tonNppToggleIcon">▲</span> <span id="tonNppToggleText">Thu gọn</span>
+                </button>
+            </div>
+
+            <div id="tonNppDashboardContent" class="space-y-3.5 transition-all duration-300">
+                <!-- 4 KPI Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col justify-between hover:border-teal-500/40 transition">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span class="font-medium">Tổng tồn cuối NPP</span>
+                            <span class="p-1 rounded bg-teal-500/10 text-teal-400 font-bold text-xs">📦</span>
+                        </div>
+                        <div id="tonNppKpiTotalStock" class="text-xl sm:text-2xl font-extrabold text-teal-300">0</div>
+                        <div id="tonNppKpiNppCount" class="text-[11px] text-slate-400 mt-1">0 Nhà phân phối</div>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col justify-between hover:border-blue-500/40 transition">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span class="font-medium">Tổng Sell-In (Nhập)</span>
+                            <span class="p-1 rounded bg-blue-500/10 text-blue-400 font-bold text-xs">🚚</span>
+                        </div>
+                        <div id="tonNppKpiSellIn" class="text-xl sm:text-2xl font-extrabold text-blue-300">0</div>
+                        <div class="text-[11px] text-slate-400 mt-1">Hàng công ty xuất sang NPP</div>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col justify-between hover:border-amber-500/40 transition">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span class="font-medium">Tổng Sell-Out (Xuất)</span>
+                            <span class="p-1 rounded bg-amber-500/10 text-amber-400 font-bold text-xs">🛒</span>
+                        </div>
+                        <div id="tonNppKpiSellOut" class="text-xl sm:text-2xl font-extrabold text-amber-300">0</div>
+                        <div class="text-[11px] text-slate-400 mt-1">NPP bán ra thị trường</div>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col justify-between hover:border-purple-500/40 transition">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span class="font-medium">Tỷ lệ tiêu thụ</span>
+                            <span class="p-1 rounded bg-purple-500/10 text-purple-400 font-bold text-xs">📈</span>
+                        </div>
+                        <div id="tonNppKpiSellThrough" class="text-xl sm:text-2xl font-extrabold text-purple-300">0%</div>
+                        <div class="text-[11px] text-slate-400 mt-1">Sell-out / (Tồn đầu + Nhập)</div>
+                    </div>
+                </div>
+
+                <!-- 2 Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-3 flex flex-col">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
+                            <span>🏢</span> Top Nhà Phân Phối có Tồn Kho lớn nhất
+                        </h4>
+                        <div class="relative h-44 w-full">
+                            <canvas id="tonNppChartDistributors"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-3 flex flex-col">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
+                            <span>📦</span> Top 8 Sản Phẩm Tồn Nhiều Nhất tại NPP
+                        </h4>
+                        <div class="relative h-44 w-full">
+                            <canvas id="tonNppChartProducts"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Alert Banner -->
+                <div id="tonNppSmartAlerts" class="text-xs py-2 px-3 rounded-lg bg-slate-800/70 border border-slate-700/60 text-slate-300 flex items-center gap-2">
+                    <span>💡</span> <span id="tonNppAlertText">Đang tải phân tích dữ liệu tồn kho NPP...</span>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
         <div class="hidden md:block flex-1 min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-auto">
             <table class="w-full text-left">
