@@ -177,6 +177,7 @@ const modules = [
     ['sanpham', 'module-sanpham', 'sanpham.html'],
     ['sanphamkho', 'module-sanphamkho', 'sanphamkho.html'],
     ['chuyenkho', 'module-chuyenkho', 'chuyenkho.html'],
+    ['ton_npp', 'module-ton_npp', 'ton_npp.html'],
     ['doisoat', 'module-doisoat', 'doisoat.html'],
     ['nhanvien', 'module-nhanvien', 'nhanvien.html'],
     ['khachhang', 'module-khachhang', 'khachhang.html']
@@ -368,6 +369,13 @@ window.APP_SIMPLE_SHEET_MODULES.sanphamkho = {
     range: 'A1:F50000',
     cacheKey: 'erp_warehouse_product_cache',
     columns: ['id', 'kho', 'id_sp', 'ten_sp', 'ton_dau', 'ton_sau']
+};`,
+    ton_npp: `window.APP_SIMPLE_SHEET_MODULES = window.APP_SIMPLE_SHEET_MODULES || {};
+window.APP_SIMPLE_SHEET_MODULES.ton_npp = {
+    sheetName: () => CONFIG.tonNppSheetName,
+    range: 'A1:E60000',
+    cacheKey: 'erp_ton_npp_cache',
+    columns: ['id', 'ngay', 'ma_kh', 'id_sp', 'ton_cuoi']
 };`,
     doisoat: `window.APP_SIMPLE_SHEET_MODULES = window.APP_SIMPLE_SHEET_MODULES || {};
 window.APP_SIMPLE_SHEET_MODULES.doisoat = {

@@ -33,6 +33,7 @@ function getSimpleModuleData(moduleName) {
     if (moduleName === 'chuyenkho') return transferDataRaw;
     if (moduleName === 'sanpham') return productDataRaw;
     if (moduleName === 'sanphamkho') return warehouseProductDataRaw;
+    if (moduleName === 'ton_npp') return tonNppDataRaw;
     if (moduleName === 'doisoat') return reconciliationDataRaw;
     return [];
 }
@@ -44,6 +45,7 @@ function setSimpleModuleData(moduleName, values) {
     else if (moduleName === 'chuyenkho') transferDataRaw = values;
     else if (moduleName === 'sanpham') productDataRaw = values;
     else if (moduleName === 'sanphamkho') warehouseProductDataRaw = values;
+    else if (moduleName === 'ton_npp') tonNppDataRaw = values;
     else if (moduleName === 'doisoat') reconciliationDataRaw = values;
 }
 
@@ -173,7 +175,7 @@ function getFilteredSimpleModuleRows(moduleName) {
     const sourceRows = moduleName === 'sanphamkho'
         ? getMergedWarehouseProductRows()
         : (values || []).slice(1).map((row, index) => {
-            if (isDetailModule || isTransferModule || moduleName === 'sanpham') row._sheetRow = index + 2;
+            if (isDetailModule || isTransferModule || moduleName === 'sanpham' || moduleName === 'ton_npp') row._sheetRow = index + 2;
             return row;
         });
     const rows = sourceRows.filter(row => {
@@ -184,6 +186,23 @@ function getFilteredSimpleModuleRows(moduleName) {
             const idSp = (row[0] || '').toString().trim().toLowerCase();
             if (hiddenProductIds.has(idSp)) return false;
             if (nppProductIds && !nppProductIds.has(idSp)) return false;
+        }
+        if (moduleName === 'ton_npp') {
+            const rowDate = parseSimpleSheetDate(row[1]);
+            const maKh = (row[2] || '').toString().toLowerCase();
+            const idSp = (row[3] || '').toString().toLowerCase();
+            const filterMaKh = (document.getElementById('ton_nppFilterMaKh')?.value || '').toLowerCase().trim();
+            const filterIdSp = (document.getElementById('ton_nppFilterIdSp')?.value || '').toLowerCase().trim();
+            if (roleKey === 'NPP') {
+                const currentCustomerId = (currentUser.id || '').toString().trim().toLowerCase();
+                if (!currentCustomerId || maKh.trim() !== currentCustomerId) return false;
+            }
+            if ((dateFrom || dateTo) && Number.isNaN(rowDate.getTime())) return false;
+            if (filterMaKh && !maKh.includes(filterMaKh)) return false;
+            if (filterIdSp && !idSp.includes(filterIdSp)) return false;
+            if (dateFrom && rowDate < new Date(`${dateFrom}T00:00:00`)) return false;
+            if (dateTo && rowDate > new Date(`${dateTo}T23:59:59.999`)) return false;
+            return true;
         }
         if (moduleName === 'doisoat' && reconciliationStatusFilter) {
             const aggregates = getProductAggregates(getReconciliationAsOfDate());
@@ -254,6 +273,9 @@ function getFilteredSimpleModuleRows(moduleName) {
         if (dateTo && rowDate > new Date(`${dateTo}T23:59:59.999`)) return false;
         return true;
     });
+    if (moduleName === 'ton_npp') {
+        return rows.sort((a, b) => parseSimpleSheetDate(b[1]).getTime() - parseSimpleSheetDate(a[1]).getTime());
+    }
     return isDetailModule || isTransferModule
         ? rows.sort((a, b) => {
             const dateIndex = moduleName === 'dukien' ? 2 : 1;
@@ -336,6 +358,7 @@ function getSimpleModuleDisplayColumns(moduleName, config) {
             ? ['id', 'ten_sp', 'ton_cuoi']
             : ['anh', 'id', 'ten_sp', 'ton_dau', 'nhap', 'xuat', 'ton_cuoi'];
     }
+    if (moduleName === 'ton_npp') return ['id', 'ngay', 'ma_kh', 'id_sp', 'ton_dau', 'nhap', 'xuat', 'ton_cuoi'];
     if (moduleName === 'doisoat') return ['id', 'ten_sp', 'ton_cuoi', 'ton_misa', 'chenh_lech'];
     if (moduleName === 'dukien') return config.columns.slice(1);
     if (['nhap', 'xuat'].includes(moduleName)) return config.columns.slice(1).filter(column => !['id_nv_nhan', 'id_nv_xuat', 'ngay_dat_hang', 'tinh_trang'].includes(column));
@@ -418,6 +441,77 @@ function getProductAggregates(asOfDate = null) {
     return aggregates;
 }
 
+function getTonNppMovementMap() {
+    const movements = new Map();
+    // 1. Group XUAT_CT by `${ma_kh}|${id_sp}`
+    const xuatByKey = new Map();
+    (xuatDataRaw || []).slice(1).forEach(row => {
+        const maKh = (row[4] || '').toString().trim().toLowerCase();
+        const idSp = (row[6] || '').toString().trim().toLowerCase();
+        const slg = cleanNumber(row[8]);
+        const date = parseSimpleSheetDate(row[1]);
+        if (!maKh || !idSp || Number.isNaN(date.getTime())) return;
+        const key = `${maKh}|${idSp}`;
+        if (!xuatByKey.has(key)) xuatByKey.set(key, []);
+        xuatByKey.get(key).push({ date, slg });
+    });
+
+    // 2. Group TON_NPP by `${ma_kh}|${id_sp}`
+    const tonNppByKey = new Map();
+    (tonNppDataRaw || []).slice(1).forEach((row, index) => {
+        const id = (row[0] || '').toString().trim();
+        const maKh = (row[2] || '').toString().trim().toLowerCase();
+        const idSp = (row[3] || '').toString().trim().toLowerCase();
+        const date = parseSimpleSheetDate(row[1]);
+        const tonCuoi = cleanNumber(row[4]);
+        if (!maKh || !idSp) return;
+        const key = `${maKh}|${idSp}`;
+        if (!tonNppByKey.has(key)) tonNppByKey.set(key, []);
+        tonNppByKey.get(key).push({ id, date, tonCuoi, originalRowIndex: index });
+    });
+
+    // 3. For each key, sort TON_NPP by date ascending
+    tonNppByKey.forEach((records, key) => {
+        records.sort((a, b) => {
+            const timeA = Number.isNaN(a.date.getTime()) ? 0 : a.date.getTime();
+            const timeB = Number.isNaN(b.date.getTime()) ? 0 : b.date.getTime();
+            if (timeA !== timeB) return timeA - timeB;
+            return a.originalRowIndex - b.originalRowIndex;
+        });
+
+        const xuatList = xuatByKey.get(key) || [];
+
+        records.forEach((rec, idx) => {
+            let tonDau = 0;
+            let nhap = 0;
+            if (idx === 0) {
+                // Kỳ đầu tiên: Tồn đầu = tổng XUAT_CT tính đến hết ngày của kỳ 1
+                tonDau = xuatList
+                    .filter(x => Number.isNaN(rec.date.getTime()) || x.date <= rec.date)
+                    .reduce((sum, x) => sum + x.slg, 0);
+                nhap = 0;
+            } else {
+                // Kỳ tiếp theo: Tồn đầu = tồn cuối của kỳ trước
+                const prev = records[idx - 1];
+                tonDau = prev.tonCuoi;
+                // Nhập = tổng XUAT_CT phát sinh trong khoảng (prev.date, rec.date]
+                nhap = xuatList
+                    .filter(x => {
+                        if (Number.isNaN(rec.date.getTime()) || Number.isNaN(prev.date.getTime())) return false;
+                        return x.date > prev.date && x.date <= rec.date;
+                    })
+                    .reduce((sum, x) => sum + x.slg, 0);
+            }
+            const xuat = tonDau + nhap - rec.tonCuoi;
+            const data = { tonDau, nhap, xuat, tonCuoi: rec.tonCuoi };
+            if (rec.id) movements.set(rec.id, data);
+            movements.set(`row_${rec.originalRowIndex}`, data);
+        });
+    });
+
+    return movements;
+}
+
 function getSimpleModuleDisplayValue(moduleName, row, column, index, movementTotals) {
     // Sanpham: virtual aggregate columns across all warehouses
     if (moduleName === 'sanpham') {
@@ -441,6 +535,20 @@ function getSimpleModuleDisplayValue(moduleName, row, column, index, movementTot
         if (column === 'nhap_ck') return totals.nhapCk;
         if (column === 'xuat_ck') return totals.xuatCk;
         if (column === 'ton_cuoi') return cleanNumber(row[4]) + totals.nhap - totals.xuat + totals.nhapCk - totals.xuatCk;
+        return row[index] || '';
+    }
+    // Ton NPP: virtual ton_dau, nhap, xuat
+    if (moduleName === 'ton_npp') {
+        if (['ton_dau', 'nhap', 'xuat'].includes(column)) {
+            const map = movementTotals?.tonNppMovements || getTonNppMovementMap();
+            const rowId = (row[0] || '').toString().trim();
+            const rec = (rowId ? map.get(rowId) : null)
+                || (row._sheetRow ? map.get(`row_${row._sheetRow - 2}`) : null)
+                || { tonDau: 0, nhap: 0, xuat: 0 };
+            if (column === 'ton_dau') return rec.tonDau;
+            if (column === 'nhap') return rec.nhap;
+            if (column === 'xuat') return rec.xuat;
+        }
         return row[index] || '';
     }
     if (moduleName === 'doisoat') {
@@ -599,10 +707,14 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
             fetchSimpleSheetModule('chuyenkho')
         ]);
     }
+    if (moduleName === 'ton_npp' && (refreshData || !xuatDataRaw.length)) {
+        await fetchSimpleSheetModule('xuat');
+    }
     if (refreshData || !getSimpleModuleData(moduleName).length) await fetchSimpleSheetModule(moduleName);
     if (moduleName === 'sanphamkho') populateWarehouseProductFilterList();
     const movementTotals = moduleName === 'sanphamkho' ? getWarehouseMovementTotals() : new Map();
     if (moduleName === 'sanpham') movementTotals.productAggregates = getProductAggregates();
+    if (moduleName === 'ton_npp') movementTotals.tonNppMovements = getTonNppMovementMap();
     if (moduleName === 'doisoat') movementTotals.productAggregates = getProductAggregates(getReconciliationAsOfDate());
     const rows = sortSimpleModuleRows(moduleName, getFilteredSimpleModuleRows(moduleName), movementTotals);
     renderSimpleModuleSortIndicators(moduleName);
@@ -611,7 +723,7 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
     const page = simpleModulePages[moduleName] || 1;
     const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     tbody.innerHTML = pageRows.length
-        ? pageRows.map(row => `<tr class="hover:bg-slate-50/80 transition-colors ${['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho'].includes(moduleName) ? 'cursor-pointer' : ''}" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})" title="Xem chi tiết sản phẩm"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : ''))))}> ${displayColumns.map((column, displayIndex) => {
+        ? pageRows.map(row => `<tr class="hover:bg-slate-50/80 transition-colors ${['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp'].includes(moduleName) ? 'cursor-pointer' : ''}" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})" title="Xem chi tiết sản phẩm"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : '')))))}> ${displayColumns.map((column, displayIndex) => {
             const physicalIndex = config.columns.indexOf(column);
             const value = getSimpleModuleDisplayValue(moduleName, row, column, physicalIndex !== -1 ? physicalIndex : displayIndex, movementTotals);
             const align = ['stt', 'so_luong_du_kien', 'slg_thuc_nhan', 'slg', 'don_gia', 'thanh_tien', 'ton_dau', 'ton_sau', 'ton_cuoi', 'ton_misa', 'chenh_lech', 'gia_ban', 'nhap', 'xuat', 'nhap_ck', 'xuat_ck'].includes(column) ? ' text-right' : '';
@@ -621,7 +733,7 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
 
     if (mobile) {
         mobile.innerHTML = pageRows.map(row => `
-            <div class="mobile-card" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})"` : ''))))}>
+            <div class="mobile-card" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})"` : '')))))}>
                 ${displayColumns.map((column, displayIndex) => {
             const physicalIndex = config.columns.indexOf(column);
             const value = getSimpleModuleDisplayValue(moduleName, row, column, physicalIndex !== -1 ? physicalIndex : displayIndex, movementTotals);
@@ -830,7 +942,7 @@ function downloadDsnvTemplate(moduleName) {
 }
 
 function getWritableSimpleModule(moduleName) {
-    return ['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat'].includes(moduleName) ? SIMPLE_SHEET_MODULES[moduleName] : null;
+    return ['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat'].includes(moduleName) ? SIMPLE_SHEET_MODULES[moduleName] : null;
 }
 
 async function appendWarehouseProductRows(rows) {
@@ -1320,6 +1432,7 @@ function openSimpleSheetManualDrawer(moduleName) {
     if (!canCurrentUser('nx.manualAdd')) return alert("Bạn không có quyền thêm dữ liệu bằng tay.");
     if (moduleName === 'chuyenkho') return openWarehouseTransferDrawer();
     if (moduleName === 'dukien') return openExpectedManualDrawer();
+    if (moduleName === 'ton_npp') return openTonNppManualDrawer();
     openNXManualDrawer(moduleName);
 }
 
@@ -1764,6 +1877,7 @@ function handleSimpleSheetExcelUpload(input) {
             if (simpleSheetUploadModule === 'sanpham') await upsertProductRows(values);
             else if (simpleSheetUploadModule === 'sanphamkho') await upsertWarehouseProductRows(values);
             else if (simpleSheetUploadModule === 'dukien') await upsertExpectedRows(values);
+            else if (simpleSheetUploadModule === 'ton_npp') await upsertTonNppRows(values);
             else if (['nhap', 'xuat'].includes(simpleSheetUploadModule)) await upsertDetailRows(simpleSheetUploadModule, values);
             else if (simpleSheetUploadModule === 'chuyenkho') {
                 if (!validateWarehouseTransferRows(values)) return;
@@ -1793,7 +1907,7 @@ function downloadSimpleSheetTemplate(moduleName) {
         return;
     }
     const example = config.columns.map(column => {
-        if (column === 'id') return moduleName === 'sanphamkho' ? 'KHO 1|SP-MAU-001' : 'ID-MAU-001';
+        if (column === 'id') return moduleName === 'sanphamkho' ? 'KHO 1|SP-MAU-001' : (moduleName === 'ton_npp' ? 'TNPP-MAU-001' : 'ID-MAU-001');
         if (column === 'kho') return 'KHO 1';
         if (column === 'qr') return 'QR-MAU-001';
         if (column === 'stt') return 1;
@@ -1826,7 +1940,7 @@ function downloadSimpleSheetTemplate(moduleName) {
         if (column === 'ghi_chu') return 'Ghi chú mẫu';
         if (column === 'tinh_trang') return 'Đang điều chuyển';
         if (column === 'trang_thai') return 'Chờ xác nhận';
-        if (column === 'ton_dau' || column === 'ton_sau' || column === 'ton_cuoi') return 0;
+        if (column === 'ton_dau' || column === 'ton_sau' || column === 'ton_cuoi') return moduleName === 'ton_npp' ? 50 : 0;
         return '';
     });
     const worksheet = XLSX.utils.aoa_to_sheet([config.columns, example]);
@@ -1841,10 +1955,11 @@ function downloadFilteredSimpleSheetExcel(moduleName) {
     if (!config) return;
     const rows = getFilteredSimpleModuleRows(moduleName);
     if (!rows.length) return alert("Không có dữ liệu phù hợp để tải xuống.");
-    const exportComputedColumns = ['sanpham', 'sanphamkho'].includes(moduleName);
+    const exportComputedColumns = ['sanpham', 'sanphamkho', 'ton_npp'].includes(moduleName);
     const columns = exportComputedColumns ? getSimpleModuleDisplayColumns(moduleName, config) : config.columns;
     const movementTotals = moduleName === 'sanphamkho' ? getWarehouseMovementTotals() : new Map();
     if (moduleName === 'sanpham') movementTotals.productAggregates = getProductAggregates();
+    if (moduleName === 'ton_npp') movementTotals.tonNppMovements = getTonNppMovementMap();
     const exportRows = exportComputedColumns
         ? rows.map(row => columns.map((column, displayIndex) => {
             const physicalIndex = config.columns.indexOf(column);
@@ -3265,3 +3380,163 @@ async function saveNXManual() {
         btn.innerHTML = '<span>Lưu nhập xuất</span>';
     }
 }
+
+// ─── Module: Tồn NPP ──────────────────────────────────────────
+let tonNppManualEditSheetRow = 0;
+
+function generateTonNppManualId() {
+    const random = Math.floor(1000 + Math.random() * 9000);
+    const id = `TNPP-${Date.now().toString().slice(-6)}-${random}`;
+    const input = document.getElementById('tonNppManualId');
+    if (input) input.value = id;
+}
+
+function openTonNppManualDrawer(sheetRow = 0) {
+    if (!canCurrentUser('nx.manualAdd')) return alert("Bạn không có quyền thêm hoặc sửa dữ liệu.");
+    tonNppManualEditSheetRow = Number(sheetRow || 0);
+    const title = document.getElementById('tonNppManualDrawerTitle');
+    if (title) title.textContent = tonNppManualEditSheetRow ? 'Sửa Tồn NPP' : 'Thêm Tồn NPP';
+
+    const customerList = document.getElementById('tonNppCustomerList');
+    if (customerList) {
+        customerList.innerHTML = (usersData || [])
+            .filter(u => isCustomerDirectoryUser(u))
+            .map(u => `<option value="${escAttr(u.id)}">${escAttr(u.name || u.id)}</option>`)
+            .join('');
+    }
+    const productList = document.getElementById('tonNppProductList');
+    if (productList) {
+        productList.innerHTML = getProductCatalog()
+            .map(p => `<option value="${escAttr(p.id)}">${escAttr(p.name || p.id)}</option>`)
+            .join('');
+    }
+
+    if (tonNppManualEditSheetRow) {
+        const row = (tonNppDataRaw || [])[tonNppManualEditSheetRow - 1];
+        if (!row) return alert("Không tìm thấy bản ghi cần sửa.");
+        document.getElementById('tonNppManualId').value = row[0] || '';
+        document.getElementById('tonNppManualDate').value = formatDateForInput(row[1] || '') || new Date().toISOString().slice(0, 10);
+        document.getElementById('tonNppManualMaKh').value = row[2] || '';
+        document.getElementById('tonNppManualIdSp').value = row[3] || '';
+        document.getElementById('tonNppManualTonCuoi').value = cleanNumber(row[4]);
+    } else {
+        generateTonNppManualId();
+        document.getElementById('tonNppManualDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('tonNppManualMaKh').value = currentUser && resolveRoleKey(currentUser.role) === 'NPP' ? currentUser.id : '';
+        document.getElementById('tonNppManualIdSp').value = '';
+        document.getElementById('tonNppManualTonCuoi').value = 0;
+    }
+
+    const drawer = document.getElementById('tonNppManualDrawer');
+    const overlay = document.getElementById('tonNppManualDrawerOverlay');
+    if (drawer && overlay) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => drawer.classList.remove('translate-x-full'), 10);
+    }
+}
+
+function closeTonNppManualDrawer() {
+    const drawer = document.getElementById('tonNppManualDrawer');
+    const overlay = document.getElementById('tonNppManualDrawerOverlay');
+    if (!drawer || !overlay) return;
+    tonNppManualEditSheetRow = 0;
+    drawer.classList.add('translate-x-full');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+}
+
+async function upsertTonNppRows(rows) {
+    const config = SIMPLE_SHEET_MODULES.ton_npp;
+    if (!config || !rows.length) return false;
+    const token = await getAccessToken();
+    await fetchSimpleSheetModule('ton_npp');
+    const existing = (tonNppDataRaw || []).slice(1);
+    const existingById = new Map();
+    existing.forEach((r, idx) => {
+        const id = (r[0] || '').toString().trim().toLowerCase();
+        if (id) existingById.set(id, idx + 2);
+    });
+
+    const updates = [];
+    const appends = [];
+    rows.forEach(r => {
+        const id = (r[0] || '').toString().trim().toLowerCase();
+        if (id && existingById.has(id)) {
+            const sheetRow = existingById.get(id);
+            const range = encodeURIComponent(`'${config.sheetName()}'!A${sheetRow}:E${sheetRow}`);
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`;
+            updates.push(fetch(url, {
+                method: 'PUT',
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ values: [r] })
+            }));
+        } else {
+            appends.push(r);
+        }
+    });
+
+    if (updates.length) await Promise.all(updates);
+    if (appends.length) {
+        const appendRange = encodeURIComponent(`'${config.sheetName()}'!A1`);
+        const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${appendRange}:append?valueInputOption=USER_ENTERED`;
+        await fetch(appendUrl, {
+            method: 'POST',
+            headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ values: appends })
+        });
+    }
+    await fetchSimpleSheetModule('ton_npp');
+    await renderSimpleSheetModule('ton_npp');
+    return true;
+}
+
+async function saveTonNppManual() {
+    if (!canCurrentUser('nx.manualAdd')) return alert("Bạn không có quyền thực hiện thao tác này.");
+    const id = document.getElementById('tonNppManualId').value.trim();
+    const rawDate = document.getElementById('tonNppManualDate').value;
+    const ngay = formatDateDDMMYYYY(rawDate);
+    const maKh = document.getElementById('tonNppManualMaKh').value.trim();
+    const idSp = parseProductIdInput(document.getElementById('tonNppManualIdSp').value);
+    const tonCuoi = cleanNumber(document.getElementById('tonNppManualTonCuoi').value);
+
+    if (!id || !ngay || !maKh || !idSp) {
+        return alert("Vui lòng điền đầy đủ ID, Ngày, Mã KH và ID SP.");
+    }
+
+    const btn = document.getElementById('tonNppManualSaveBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner !w-4 !h-4 !border-white/20 !border-l-white !m-0"></div> <span>Đang lưu...</span>';
+    }
+
+    try {
+        const row = [id, ngay, maKh, idSp, tonCuoi];
+        let ok = false;
+        if (tonNppManualEditSheetRow) {
+            const token = await getAccessToken();
+            const config = SIMPLE_SHEET_MODULES.ton_npp;
+            const range = encodeURIComponent(`'${config.sheetName()}'!A${tonNppManualEditSheetRow}:E${tonNppManualEditSheetRow}`);
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`;
+            const resp = await fetch(url, {
+                method: 'PUT',
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ values: [row] })
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            await fetchSimpleSheetModule('ton_npp');
+            await renderSimpleSheetModule('ton_npp');
+            ok = true;
+        } else {
+            ok = await upsertTonNppRows([row]);
+        }
+        if (ok) closeTonNppManualDrawer();
+    } catch (err) {
+        console.error("Save TON_NPP error:", err);
+        alert("Không thể lưu thông tin Tồn NPP.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Lưu tồn NPP</span>';
+        }
+    }
+}
+

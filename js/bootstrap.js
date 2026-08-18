@@ -49,14 +49,12 @@
             'js/chuyenkho.js',
             'js/sanpham.js',
             'js/sanphamkho.js',
+            'js/ton_npp.js',
             'js/doisoat.js',
             'js/nhanvien.js',
             'js/khachhang.js',
-            'js/anhdonhang.js',
             'js/inventory.js',
-            'js/kiemkho.js',
-            'js/giuhang.js',
-            'js/dashboard.js',
+            'js/caidat.js',
             'js/init.js'
         ];
         for (const file of scripts) await loadScript(file);

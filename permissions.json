@@ -8,9 +8,11 @@
     "chuyenkho": "Điều chuyển kho",
     "sanpham": "Danh sách sản phẩm",
     "sanphamkho": "Danh sách sản phẩm kho",
+    "ton_npp": "Tồn NPP",
     "doisoat": "Đối soát",
     "nhanvien": "Danh sách nhân viên",
-    "khachhang": "Danh sách khách hàng"
+    "khachhang": "Danh sách khách hàng",
+    "caidat": "Cài đặt & Phân quyền"
   },
   "roles": {
     "ADMIN": {
@@ -22,16 +24,19 @@
         "chuyenkho",
         "sanpham",
         "sanphamkho",
+        "ton_npp",
         "doisoat",
         "nhanvien",
-        "khachhang"
+        "khachhang",
+        "caidat"
       ],
       "actions": [
         "nx.manualAdd",
         "nx.upload",
         "nx.confirmWarehouse",
         "sanpham.manage",
-        "doisoat.manage"
+        "doisoat.manage",
+        "caidat.manage"
       ]
     },
     "kt": {
@@ -42,6 +47,7 @@
         "chuyenkho",
         "sanpham",
         "sanphamkho",
+        "ton_npp",
         "doisoat"
       ],
       "actions": [
@@ -55,7 +61,8 @@
         "dukien",
         "xuat",
         "chuyenkho",
-        "sanphamkho"
+        "sanphamkho",
+        "ton_npp"
       ],
       "actions": [
         "nx.confirmWarehouse"
@@ -64,19 +71,22 @@
     "NPP": {
       "modules": [
         "sanpham",
-        "xuat"
+        "xuat",
+        "ton_npp"
       ],
       "actions": []
     },
     "KD": {
       "modules": [
-        "sanpham"
+        "sanpham",
+        "ton_npp"
       ],
       "actions": []
     },
     "NVKD": {
       "modules": [
-        "sanpham"
+        "sanpham",
+        "ton_npp"
       ],
       "actions": []
     }
@@ -84,7 +94,8 @@
   "dataScopes": {
     "NPP": {
       "sanpham": "Chỉ xem Ảnh, ID, Tên SP, Tồn cuối của ID SP đã xuất trong XUAT_CT theo ma_kh bằng id tài khoản",
-      "xuat": "Chỉ xem đơn xuất trong XUAT_CT theo ma_kh bằng id tài khoản"
+      "xuat": "Chỉ xem đơn xuất trong XUAT_CT theo ma_kh bằng id tài khoản",
+      "ton_npp": "Chỉ xem dữ liệu trong TON_NPP theo ma_kh bằng id tài khoản"
     },
     "KD": {
       "sanpham": "Xem ID, Ten SP, Ton cuoi tong"

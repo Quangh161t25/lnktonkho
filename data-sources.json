@@ -554,6 +554,43 @@
         "chenh_lech"
       ]
     },
+    "TON_NPP": {
+      "purpose": "Danh sách tồn kho Nhà phân phối",
+      "readRange": "A1:E60000",
+      "appendRange": "A1:append",
+      "updateRangePattern": "A{row}:E{row}",
+      "columns": [
+        "id",
+        "ngay",
+        "ma_kh",
+        "id_sp",
+        "ton_cuoi"
+      ],
+      "webColumns": [
+        "id",
+        "ngay",
+        "ma_kh",
+        "id_sp",
+        "ton_dau",
+        "nhap",
+        "xuat",
+        "ton_cuoi"
+      ],
+      "virtualColumns": {
+        "ton_dau": "Kỳ 1 = tổng XUAT_CT đến ngày đó; Kỳ >= 2 = ton_cuoi kỳ trước",
+        "nhap": "Tổng XUAT_CT phát sinh giữa 2 kỳ kiểm đếm",
+        "xuat": "ton_dau + nhap - ton_cuoi"
+      },
+      "displayedIn": [
+        "ton_npp"
+      ],
+      "writeFlows": [
+        "manualUpsertById",
+        "excelUpsertById",
+        "downloadTemplate",
+        "downloadFiltered"
+      ]
+    },
     "KIEM_KHO": {
       "purpose": "Phiếu kiểm kho",
       "readRange": "A1:H50000",
@@ -720,6 +757,71 @@
         "availableQuantityCalculation": [
           "id_sp",
           "so_luong"
+        ]
+      }
+    },
+    "CAI_DAT": {
+      "purpose": "Lưu trữ toàn bộ cấu hình hệ thống, tham số vận hành, danh sách kho, phân quyền vai trò, quyền thao tác, giới hạn tài khoản và phạm vi dữ liệu",
+      "readRange": "A1:H1000",
+      "writeRange": "A1:H1000",
+      "limit": {
+        "maxRows": 1000,
+        "maxColumns": 8
+      },
+      "columns": [
+        "id",
+        "ten_thiet_lap",
+        "gia_tri",
+        "nhom",
+        "kieu_du_lieu",
+        "mo_ta",
+        "ngay_cap_nhat",
+        "nguoi_cap_nhat"
+      ],
+      "columnsUsed": {
+        "id": "Mã định danh cấu hình (Key) - Cột A",
+        "ten_thiet_lap": "Tên cấu hình hiển thị tiếng Việt - Cột B",
+        "gia_tri": "Giá trị cấu hình (Text/Number/List/JSON) - Cột C",
+        "nhom": "Nhóm cấu hình: HE_THONG, KHO_HANG, VAI_TRO, QUYEN_THAO_TAC, GIOI_HAN_USER, PHAM_VI_DU_LIEU, CANH_BAO - Cột D",
+        "kieu_du_lieu": "Kiểu dữ liệu: text, number, list, json, boolean - Cột E",
+        "mo_ta": "Mô tả chi tiết và hướng dẫn thiết lập - Cột F",
+        "ngay_cap_nhat": "Ngày cập nhật gần nhất - Cột G",
+        "nguoi_cap_nhat": "Người cập nhật - Cột H"
+      },
+      "writeFlows": [
+        "saveCaidatToGoogleSheet",
+        "syncCaidatFromGoogleSheet",
+        "directRowUpsert"
+      ],
+      "displayedIn": {
+        "caidatSystemSettings": [
+          "id",
+          "ten_thiet_lap",
+          "gia_tri",
+          "nhom",
+          "mo_ta"
+        ],
+        "caidatRolePermissions": [
+          "id",
+          "gia_tri"
+        ],
+        "caidatUserRestrictions": [
+          "id",
+          "gia_tri"
+        ],
+        "caidatDataScopes": [
+          "id",
+          "gia_tri"
+        ],
+        "caidatDataTable": [
+          "id",
+          "ten_thiet_lap",
+          "gia_tri",
+          "nhom",
+          "kieu_du_lieu",
+          "mo_ta",
+          "ngay_cap_nhat",
+          "nguoi_cap_nhat"
         ]
       }
     }

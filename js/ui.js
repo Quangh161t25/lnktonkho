@@ -32,7 +32,7 @@ function populateAdminViewUserSelect() {
 }
 
 function refreshCurrentModuleView() {
-    const visibleModule = ['home', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat', 'nhanvien', 'khachhang']
+    const visibleModule = ['home', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat', 'nhanvien', 'khachhang']
         .find(m => !document.getElementById(`module-${m}`)?.classList.contains('hidden'));
     const allowed = currentUser ? getAllowedModules(currentUser.role) : [];
     if (visibleModule && allowed.includes(visibleModule)) {
@@ -44,7 +44,7 @@ function refreshCurrentModuleView() {
 }
 
 function getVisibleModuleName() {
-    return ['home', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat', 'nhanvien', 'khachhang']
+    return ['home', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat', 'nhanvien', 'khachhang']
         .find(m => !document.getElementById(`module-${m}`)?.classList.contains('hidden')) || activeModuleName || 'home';
 }
 
@@ -64,22 +64,13 @@ async function refreshActiveModule() {
     try {
         if (moduleName === 'nhapxuat') {
             await renderNXModule();
-        } else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat'].includes(moduleName)) {
+        } else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat'].includes(moduleName)) {
             await renderSimpleSheetModule(moduleName, false, true);
-        } else if (moduleName === 'anhdonhang') {
-            await fetchReferenceData();
-            renderOrderImageRows();
         } else if (['nhanvien', 'khachhang'].includes(moduleName)) {
             await fetchAuthData();
             renderDsnvDirectory(moduleName);
-        } else if (moduleName === 'giuhang') {
-            await renderGiuHangModule();
-        } else if (moduleName === 'kiemkho') {
-            await renderKiemKhoModule();
-        } else if (moduleName === 'dashboard') {
-            await fetchNXData();
-            updateDashboardFilterOptions();
-            renderDashboard();
+        } else if (moduleName === 'caidat') {
+            if (typeof renderCaidatModule === 'function') renderCaidatModule();
         } else {
             await fetchReferenceData();
         }
@@ -142,7 +133,7 @@ function updateUserProfileUI() {
 
     // Hide/Show Navigation items based on role
     const allowed = getAllowedModules(currentUser.role);
-    ['home', 'nhapxuat', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'anhdonhang', 'sanpham', 'sanphamkho', 'doisoat', 'nhanvien', 'khachhang', 'giuhang', 'kiemkho', 'dashboard'].forEach(m => {
+    ['home', 'nhapxuat', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'anhdonhang', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat', 'nhanvien', 'khachhang', 'giuhang', 'kiemkho', 'dashboard', 'caidat'].forEach(m => {
         const navEl = document.getElementById(`nav-${m}`);
         const bNavEl = document.getElementById(`bottom-nav-${m}`);
         const cardEl = document.getElementById(`home-card-${m}`);
@@ -234,6 +225,7 @@ const HEADER_SEARCH_MODULES = {
     chuyenkho: { inputId: 'chuyenkhoSearchInput', placeholder: 'Tìm trong điều chuyển kho...' },
     sanpham: { inputId: 'sanphamSearchInput', placeholder: 'Tìm sản phẩm...' },
     sanphamkho: { inputId: 'sanphamkhoSearchInput', placeholder: 'Tìm sản phẩm theo kho...' },
+    ton_npp: { inputId: 'ton_nppSearchInput', placeholder: 'Tìm trong tồn NPP...' },
     doisoat: { inputId: 'doisoatSearchInput', placeholder: 'Tìm dữ liệu đối soát...' },
     nhanvien: { inputId: 'nhanvienSearchInput', placeholder: 'Tìm nhân viên...' },
     khachhang: { inputId: 'khachhangSearchInput', placeholder: 'Tìm khách hàng...' },
@@ -249,9 +241,15 @@ const MODULE_PAGE_PATHS = {
     chuyenkho: 'chuyenkho.html',
     sanpham: 'sanpham.html',
     sanphamkho: 'sanphamkho.html',
+    ton_npp: 'ton_npp.html',
+    anhdonhang: 'anhdonhang.html',
     doisoat: 'doisoat.html',
     nhanvien: 'nhanvien.html',
-    khachhang: 'khachhang.html'
+    khachhang: 'khachhang.html',
+    giuhang: 'giuhang.html',
+    kiemkho: 'kiemkho.html',
+    dashboard: 'dashboard.html',
+    caidat: 'caidat.html'
 };
 
 function getPageEntryModule() {
@@ -336,7 +334,7 @@ function handleHeaderSearch(value) {
     if (moduleInput) moduleInput.value = value;
 
     if (activeHeaderSearchModule === 'nhapxuat') applyFilters(true);
-    else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat'].includes(activeHeaderSearchModule)) renderSimpleSheetModule(activeHeaderSearchModule, true);
+    else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat'].includes(activeHeaderSearchModule)) renderSimpleSheetModule(activeHeaderSearchModule, true);
     else if (['nhanvien', 'khachhang'].includes(activeHeaderSearchModule)) renderDsnvDirectory(activeHeaderSearchModule);
     else if (activeHeaderSearchModule === 'giuhang') applyGiuHangFilters();
     else if (activeHeaderSearchModule === 'kiemkho') applyKiemKhoFilters(true);
@@ -352,7 +350,7 @@ function switchModule(moduleName, options = {}) {
     if (!options.renderOnly && navigateToModulePage(moduleName)) return;
 
     activeModuleName = moduleName;
-    ['home', 'nhapxuat', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'anhdonhang', 'sanpham', 'sanphamkho', 'doisoat', 'nhanvien', 'khachhang', 'giuhang', 'kiemkho', 'dashboard'].forEach(m => {
+    ['home', 'nhapxuat', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'anhdonhang', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat', 'nhanvien', 'khachhang', 'giuhang', 'kiemkho', 'dashboard', 'caidat'].forEach(m => {
         const mod = document.getElementById(`module-${m}`);
         if (mod) mod.classList.add('hidden');
 
@@ -385,11 +383,13 @@ function switchModule(moduleName, options = {}) {
         'chuyenkho': 'Điều chuyển kho',
         'sanpham': 'Danh sách sản phẩm',
         'sanphamkho': 'Danh sách sản phẩm kho',
+        'ton_npp': 'Tồn NPP',
         'doisoat': 'Đối soát',
         'nhanvien': 'Danh sách nhân viên',
         'khachhang': 'Danh sách khách hàng',
         'giuhang': 'Quản lý giữ hàng',
-        'dashboard': 'Báo cáo & Phân tích'
+        'dashboard': 'Báo cáo & Phân tích',
+        'caidat': 'Cài đặt & Phân quyền'
     };
     titles['anhdonhang'] = 'Ảnh đơn hàng';
     titles['kiemkho'] = 'Kiểm kho';
@@ -400,25 +400,11 @@ function switchModule(moduleName, options = {}) {
     if (moduleName === 'nhapxuat') {
         if (nxDataRaw && nxDataRaw.length > 0) applyFilters();
         else renderNXModule();
-    } else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'doisoat'].includes(moduleName)) {
+    } else if (['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat'].includes(moduleName)) {
         renderSimpleSheetModule(moduleName, false, true);
-    } else if (moduleName === 'anhdonhang') {
-        if (!productDataRaw || productDataRaw.length <= 1) fetchReferenceData().then(() => renderOrderImageRows());
-        else renderOrderImageRows();
     } else if (['nhanvien', 'khachhang'].includes(moduleName)) {
         renderDsnvDirectory(moduleName);
-    } else if (moduleName === 'giuhang') {
-        if (giuHangDataRaw && giuHangDataRaw.length > 0) applyGiuHangFilters();
-        else renderGiuHangModule();
-    } else if (moduleName === 'kiemkho') {
-        if (kiemKhoDataRaw && kiemKhoDataRaw.length > 0) applyKiemKhoFilters();
-        else renderKiemKhoModule();
-    } else if (moduleName === 'dashboard') {
-        if (nxDataRaw && nxDataRaw.length > 1) renderDashboard();
-        else {
-            const tbody = document.getElementById('dbTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400">Đang tải dữ liệu báo cáo...</td></tr>';
-            fetchNXData().then(() => renderDashboard());
-        }
+    } else if (moduleName === 'caidat') {
+        if (typeof renderCaidatModule === 'function') renderCaidatModule();
     }
 }

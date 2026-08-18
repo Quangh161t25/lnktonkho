@@ -1,0 +1,54 @@
+<div id="module-ton_npp" class="hidden h-full flex flex-col">
+    <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4 shrink-0">
+        <input id="ton_nppSearchInput" oninput="renderSimpleSheetModule('ton_npp', true)"
+            placeholder="Tìm trong TON_NPP..." class="hidden">
+        <span id="ton_nppCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
+        <div class="ml-auto flex items-center gap-2">
+            <button onclick="openSimpleSheetManualDrawer('ton_npp')"
+                class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Thêm = tay</button>
+            <button onclick="triggerSimpleSheetExcelUpload('ton_npp')"
+                class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">Thêm = Excel</button>
+            <button onclick="downloadSimpleSheetTemplate('ton_npp')"
+                class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">Tải Excel mẫu</button>
+            <button onclick="downloadFilteredSimpleSheetExcel('ton_npp')"
+                class="px-3 py-2 rounded-lg bg-slate-700 text-white text-xs font-bold hover:bg-slate-800">Tải Excel theo lọc</button>
+        </div>
+    </div>
+    <div class="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap items-center gap-2 shrink-0">
+        <input type="date" id="ton_nppDateFrom" onchange="renderSimpleSheetModule('ton_npp', true)"
+            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+        <span class="text-slate-400">→</span>
+        <input type="date" id="ton_nppDateTo" onchange="renderSimpleSheetModule('ton_npp', true)"
+            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+        <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+            <button onclick="setSimpleSheetQuickDate('ton_npp', 'today')" class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">HÔM NAY</button>
+            <button onclick="setSimpleSheetQuickDate('ton_npp', 'week')" class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">TUẦN NÀY</button>
+            <button onclick="setSimpleSheetQuickDate('ton_npp', 'month')" class="px-3 py-1.5 text-[10px] font-bold rounded-md hover:bg-white">THÁNG NÀY</button>
+        </div>
+        <input id="ton_nppFilterMaKh" oninput="renderSimpleSheetModule('ton_npp', true)"
+            placeholder="Lọc Mã KH..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
+        <input id="ton_nppFilterIdSp" oninput="renderSimpleSheetModule('ton_npp', true)"
+            placeholder="Lọc ID SP..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
+    </div>
+    <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
+        <div class="hidden md:block flex-1 min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                    <tr>
+                        <th data-sort-module="ton_npp" data-sort-column="id" onclick="toggleSimpleModuleSort('ton_npp', 'id')" class="w-[160px] cursor-pointer select-none">ID <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ngay" onclick="toggleSimpleModuleSort('ton_npp', 'ngay')" class="w-[120px] cursor-pointer select-none">Ngày <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ma_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ma_kh')" class="w-[140px] cursor-pointer select-none">Mã KH <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ton_dau" onclick="toggleSimpleModuleSort('ton_npp', 'ton_dau')" class="w-[120px] text-right cursor-pointer select-none">Tồn đầu <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="nhap" onclick="toggleSimpleModuleSort('ton_npp', 'nhap')" class="w-[110px] text-right cursor-pointer select-none">Nhập <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="xuat" onclick="toggleSimpleModuleSort('ton_npp', 'xuat')" class="w-[110px] text-right cursor-pointer select-none">Xuất <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ton_cuoi" onclick="toggleSimpleModuleSort('ton_npp', 'ton_cuoi')" class="w-[120px] text-right cursor-pointer select-none">Tồn cuối <span data-sort-indicator></span></th>
+                    </tr>
+                </thead>
+                <tbody id="ton_nppTableBody"></tbody>
+            </table>
+        </div>
+        <div id="ton_nppMobileCards" class="md:hidden flex-1 min-h-0 overflow-auto space-y-3"></div>
+        <div id="ton_nppPagination"></div>
+    </div>
+</div>

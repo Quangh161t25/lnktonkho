@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vg-erp-cache-v90';
+const CACHE_NAME = 'vg-erp-cache-v91';
 const ASSETS = [
     './',
     'index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
     'js/chuyenkho.js',
     'js/sanpham.js',
     'js/sanphamkho.js',
+    'js/ton_npp.js',
     'js/doisoat.js',
     'js/nhanvien.js',
     'js/khachhang.js',
@@ -26,6 +27,8 @@ const ASSETS = [
     'chuyenkho.html',
     'sanpham.html',
     'sanphamkho.html',
+    'ton_npp.html',
+    'view-ton_npp.html',
     'doisoat.html',
     'nhanvien.html',
     'khachhang.html',

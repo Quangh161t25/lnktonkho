@@ -41,6 +41,15 @@
             <p class="text-xs text-slate-500 leading-relaxed">Danh mục sản phẩm theo từng kho.</p>
         </div>
 
+        <div id="home-card-ton_npp" onclick="switchModule('ton_npp')"
+            class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-teal-300 transition-all cursor-pointer flex flex-col items-center text-center">
+            <div
+                class="w-14 h-14 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mb-4 text-sm font-bold">
+                NPP</div>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Tồn NPP</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Danh sách tồn kho Nhà phân phối từ TON_NPP.</p>
+        </div>
+
         <div id="home-card-doisoat" onclick="switchModule('doisoat')"
             class="group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-rose-300 transition-all cursor-pointer flex flex-col items-center text-center">
             <div
@@ -68,49 +77,22 @@
             <p class="text-xs text-slate-500 leading-relaxed">Khách hàng NPP và NCC từ sheet DSNV.</p>
         </div>
 
-        <!-- Card: Giữ Hàng -->
-        <div id="home-card-giuhang" onclick="switchModule('giuhang')"
-            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center text-center">
-            <div
-                class="w-14 h-14 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-            </div>
-            <h3 class="font-bold text-slate-800 mb-2 text-lg">Quản lý giữ hàng</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">Theo dõi và cập nhật trạng thái các sản
-                phẩm đang tạm giữ.</p>
-        </div>
 
-        <!-- Card: Kiểm Kho -->
-        <div id="home-card-kiemkho" onclick="switchModule('kiemkho')"
-            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex flex-col items-center text-center">
-            <div
-                class="w-14 h-14 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 104 0m-4 0a2 2 0 114 0m-7 8l2 2 4-4" />
-                </svg>
-            </div>
-            <h3 class="font-bold text-slate-800 mb-2 text-lg">Kiểm kho</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">Ghi nhận tồn thực tế, chênh lệch và vị trí
-                kiểm kê.</p>
-        </div>
 
-        <!-- Card: Dashboard -->
-        <div id="home-card-dashboard" onclick="switchModule('dashboard')"
-            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col items-center text-center">
+        <!-- Card: Cài đặt & Phân quyền -->
+        <div id="home-card-caidat" onclick="switchModule('caidat')"
+            class="hidden group bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col items-center text-center">
             <div
-                class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </div>
-            <h3 class="font-bold text-slate-800 mb-2 text-lg">Báo cáo & Phân tích</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">Phân tích chuyên sâu về tăng trưởng và
-                hiệu suất kho hàng.</p>
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Cài đặt & Phân quyền</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Thiết kế vai trò, phân quyền module, quyền thao tác và giới hạn tài khoản.</p>
         </div>
     </div>
 </div>
