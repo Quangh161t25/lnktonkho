@@ -107,8 +107,8 @@
                 </div>
                 <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Tình trạng</label><input id="warehouseTransferCondition" class="form-input" placeholder="Nhập tình trạng..."></div>
                 <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Trạng thái</label><input id="warehouseTransferStatus" class="form-input" placeholder="Nhập trạng thái..."></div>
-                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho đi cho tất cả SP</label><select id="warehouseTransferCommonFrom" onchange="applyWarehouseTransferCommonWarehouse('khoDi', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select></div>
-                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho nhận cho tất cả SP</label><select id="warehouseTransferCommonTo" onchange="applyWarehouseTransferCommonWarehouse('khoNhan', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select></div>
+                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho đi cho tất cả SP</label><select id="warehouseTransferCommonFrom" onchange="applyWarehouseTransferCommonWarehouse('khoDi', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option></select></div>
+                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho nhận cho tất cả SP</label><select id="warehouseTransferCommonTo" onchange="applyWarehouseTransferCommonWarehouse('khoNhan', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option></select></div>
             </div>
             <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Ghi chú</label><input id="warehouseTransferNote" class="form-input" placeholder="Nhập ghi chú..."></div>
             <div class="space-y-3">
@@ -250,14 +250,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Kho</label>
                     <select id="warehouseProductKho"
-                        class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Chọn kho...</option>
-                        <option value="KHO 1">KHO 1</option>
-                        <option value="KHO 2">KHO 2</option>
-                        <option value="KHO 3">KHO 3</option>
-                        <option value="KHO 4">KHO 4</option>
-                        <option value="KHO 5">KHO 5</option>
-                    </select>
+                        class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"><option value="">Chọn kho...</option></select>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">ID SP</label>
@@ -445,18 +438,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Kho áp dụng cho tất cả SP</label>
                     <input type="hidden" id="nxManualWarehouse">
-                    <div id="nxManualWarehouseButtons" class="flex flex-wrap gap-2">
-                        <button type="button" data-warehouse="KHO 1" onclick="selectNXManualCommonWarehouse('KHO 1')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 1</button>
-                        <button type="button" data-warehouse="KHO 2" onclick="selectNXManualCommonWarehouse('KHO 2')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 2</button>
-                        <button type="button" data-warehouse="KHO 3" onclick="selectNXManualCommonWarehouse('KHO 3')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 3</button>
-                        <button type="button" data-warehouse="KHO 4" onclick="selectNXManualCommonWarehouse('KHO 4')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 4</button>
-                        <button type="button" data-warehouse="KHO 5" onclick="selectNXManualCommonWarehouse('KHO 5')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 5</button>
-                    </div>
+                    <div id="nxManualWarehouseButtons" class="flex flex-wrap gap-2"></div>
                 </div>
             </div>
             <div class="space-y-3">
@@ -1260,14 +1242,7 @@
                             placeholder="Lọc ID SP..."
                             class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
                         <select id="nhapFilterKho" onchange="renderSimpleSheetModule('nhap', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                     </div>
                     <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                         <div
@@ -1420,14 +1395,7 @@
                             placeholder="Lọc ID SP..."
                             class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
                         <select id="xuatFilterKho" onchange="renderSimpleSheetModule('xuat', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                     </div>
                     <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                         <div
@@ -1530,14 +1498,7 @@
                     </div>
                     <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-2 shrink-0">
                         <select id="sanphamkhoFilterKho" onchange="renderSimpleSheetModule('sanphamkho', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                         <input id="sanphamkhoFilterIdSp" list="sanphamkhoProductList"
                             oninput="renderSimpleSheetModule('sanphamkho', true)"
                             placeholder="Lọc ID SP..."
@@ -1593,8 +1554,8 @@
                         </div>
                         <input id="chuyenkhoFilterMdh" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc MDH..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                         <input id="chuyenkhoFilterIdSp" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc ID SP..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
-                        <select id="chuyenkhoFilterKhoDi" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho đi</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select>
-                        <select id="chuyenkhoFilterKhoNhan" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho nhận</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select>
+                        <select id="chuyenkhoFilterKhoDi" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho đi</option></select>
+                        <select id="chuyenkhoFilterKhoNhan" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho nhận</option></select>
                         <input id="chuyenkhoFilterCondition" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc tình trạng..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                         <input id="chuyenkhoFilterStatus" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc trạng thái..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                     </div>

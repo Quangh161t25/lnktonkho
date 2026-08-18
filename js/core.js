@@ -26,10 +26,31 @@ const CONFIG = {
     scopes: ["https://www.googleapis.com/auth/spreadsheets"]
 };
 
-const WAREHOUSE_OPTIONS = ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+function getWarehouseOptions() {
+    return (appSettings && Array.isArray(appSettings.warehouses) && appSettings.warehouses.length > 0)
+        ? appSettings.warehouses
+        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+}
+
+function getDefaultWarehouse() {
+    const list = getWarehouseOptions();
+    const def = (appSettings && appSettings.defaultWarehouse) || '';
+    return list.some(k => k.toLowerCase() === def.toLowerCase()) ? def : (list[0] || 'KHO 1');
+}
+
+const WAREHOUSE_OPTIONS = new Proxy([], {
+    get(target, prop) {
+        const arr = getWarehouseOptions();
+        if (typeof arr[prop] === 'function') return arr[prop].bind(arr);
+        return arr[prop];
+    }
+});
 
 function isAllowedWarehouse(value) {
-    return WAREHOUSE_OPTIONS.includes((value || '').toString().trim());
+    if (!value) return false;
+    const val = value.toString().trim().toUpperCase();
+    const list = getWarehouseOptions();
+    return list.some(k => k.toString().trim().toUpperCase() === val);
 }
 
 function setWarehouseSelectValue(selectId, value) {
@@ -55,21 +76,27 @@ let giuHangDataRaw = JSON.parse(localStorage.getItem('erp_gh_cache') || '[]');
 let kiemKhoDataRaw = JSON.parse(localStorage.getItem('erp_kk_cache') || '[]');
 let caiDatDataRaw = JSON.parse(localStorage.getItem('erp_caidat_cache') || '[]');
 
-let appSettings = {
-    appName: "LNK TỒN KHO - ERP SYSTEM",
-    appVersion: "2.0.0",
-    pageSize: 200,
-    warehouses: ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'],
-    defaultWarehouse: 'KHO 1',
-    lowStockThreshold: 10,
-    allowNegativeStock: 'CANH_BAO',
-    holdOrderExpiryDays: 7,
-    autoRefreshIntervalSec: 300,
-    kiemKhoStatuses: ['Chờ kiểm', 'Đã kiểm', 'Lệch kho', 'Hoàn thành'],
-    xuatConfirmStatuses: ['Đã nhặt hàng', 'Đã lên xe', 'Hoàn thành'],
-    lastSyncedTime: null,
-    syncSource: 'LOCAL'
-};
+let appSettings = (() => {
+    try {
+        const cached = localStorage.getItem('erp_app_settings');
+        if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return {
+        appName: "LNK TỒN KHO - ERP SYSTEM",
+        appVersion: "2.0.0",
+        pageSize: 200,
+        warehouses: ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'],
+        defaultWarehouse: 'KHO 1',
+        lowStockThreshold: 10,
+        allowNegativeStock: 'CANH_BAO',
+        holdOrderExpiryDays: 7,
+        autoRefreshIntervalSec: 300,
+        kiemKhoStatuses: ['Chờ kiểm', 'Đã kiểm', 'Lệch kho', 'Hoàn thành'],
+        xuatConfirmStatuses: ['Đã nhặt hàng', 'Đã lên xe', 'Hoàn thành'],
+        lastSyncedTime: null,
+        syncSource: 'LOCAL'
+    };
+})();
 let currentUser = null;
 let loggedInUser = null;
 let accessToken = null;
@@ -129,7 +156,7 @@ const DEFAULT_PERMISSIONS = {
     roles: {
         'ADMIN': {
             modules: ['home', 'nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat', 'nhanvien', 'khachhang', 'caidat'],
-            actions: ['nx.manualAdd', 'nx.upload', 'nx.confirmWarehouse', 'sanpham.manage', 'doisoat.manage', 'caidat.manage']
+            actions: ['nx.manualAdd', 'nx.upload', 'nx.confirmWarehouse', 'nx.delete', 'sanpham.manage', 'doisoat.manage', 'caidat.manage']
         },
         'kt': {
             modules: ['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp', 'doisoat'],
@@ -175,9 +202,7 @@ const DEFAULT_PERMISSIONS = {
 let appPermissions = JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
 
 function getAllowedWarehousesForCurrentUser() {
-    const allWarehouses = (appSettings && appSettings.warehouses && appSettings.warehouses.length > 0)
-        ? appSettings.warehouses
-        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+    const allWarehouses = getWarehouseOptions();
     if (!currentUser) return allWarehouses;
     const roleKey = (resolveRoleKey(currentUser.role) || '').toUpperCase();
     if (['ADMIN', 'KT', 'KD', 'NVKD', 'NPP'].includes(roleKey)) {
@@ -185,7 +210,8 @@ function getAllowedWarehousesForCurrentUser() {
     }
     const userWhs = appPermissions.userWarehouses && appPermissions.userWarehouses[currentUser.id];
     if (Array.isArray(userWhs) && userWhs.length > 0) {
-        return userWhs;
+        const valid = userWhs.filter(w => allWarehouses.some(a => a.toUpperCase() === w.toUpperCase()));
+        return valid.length > 0 ? valid : allWarehouses;
     }
     return allWarehouses;
 }
@@ -740,10 +766,15 @@ async function loadPermissionsConfig() {
     return appPermissions;
 }
 
-function savePermissionsConfig(newPerms) {
-    if (!newPerms) return;
-    appPermissions = JSON.parse(JSON.stringify(newPerms));
-    localStorage.setItem('erp_custom_permissions', JSON.stringify(appPermissions, null, 2));
+function savePermissionsConfig(newPerms, newSettings) {
+    if (newPerms) {
+        appPermissions = JSON.parse(JSON.stringify(newPerms));
+        localStorage.setItem('erp_custom_permissions', JSON.stringify(appPermissions, null, 2));
+    }
+    if (newSettings) {
+        appSettings = { ...appSettings, ...JSON.parse(JSON.stringify(newSettings)) };
+        localStorage.setItem('erp_app_settings', JSON.stringify(appSettings, null, 2));
+    }
     if (typeof updateUserProfileUI === 'function') updateUserProfileUI();
     return appPermissions;
 }

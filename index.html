@@ -109,8 +109,8 @@
                 </div>
                 <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Tình trạng</label><input id="warehouseTransferCondition" class="form-input" placeholder="Nhập tình trạng..."></div>
                 <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Trạng thái</label><input id="warehouseTransferStatus" class="form-input" placeholder="Nhập trạng thái..."></div>
-                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho đi cho tất cả SP</label><select id="warehouseTransferCommonFrom" onchange="applyWarehouseTransferCommonWarehouse('khoDi', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select></div>
-                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho nhận cho tất cả SP</label><select id="warehouseTransferCommonTo" onchange="applyWarehouseTransferCommonWarehouse('khoNhan', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select></div>
+                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho đi cho tất cả SP</label><select id="warehouseTransferCommonFrom" onchange="applyWarehouseTransferCommonWarehouse('khoDi', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option></select></div>
+                <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Kho nhận cho tất cả SP</label><select id="warehouseTransferCommonTo" onchange="applyWarehouseTransferCommonWarehouse('khoNhan', this.value)" class="form-input bg-white"><option value="">Chọn kho...</option></select></div>
             </div>
             <div class="space-y-1.5"><label class="text-xs font-bold text-slate-500 uppercase">Ghi chú</label><input id="warehouseTransferNote" class="form-input" placeholder="Nhập ghi chú..."></div>
             <div class="space-y-3">
@@ -252,14 +252,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Kho</label>
                     <select id="warehouseProductKho"
-                        class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Chọn kho...</option>
-                        <option value="KHO 1">KHO 1</option>
-                        <option value="KHO 2">KHO 2</option>
-                        <option value="KHO 3">KHO 3</option>
-                        <option value="KHO 4">KHO 4</option>
-                        <option value="KHO 5">KHO 5</option>
-                    </select>
+                        class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"><option value="">Chọn kho...</option></select>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">ID SP</label>
@@ -348,6 +341,10 @@
         <div class="p-6 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50">
             <button onclick="closeTonNppManualDrawer()"
                 class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-200 transition">Hủy bỏ</button>
+            <button id="tonNppManualDeleteBtn" onclick="deleteTonNppManualRecord()"
+                class="hidden flex-1 py-2.5 px-4 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 transition shadow-lg shadow-rose-100 flex items-center justify-center gap-2">
+                <span>Xóa đơn</span>
+            </button>
             <button id="tonNppManualSaveBtn" onclick="saveTonNppManual()"
                 class="flex-[2] py-2.5 px-4 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
                 Lưu tồn NPP
@@ -431,18 +428,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Kho áp dụng cho tất cả SP</label>
                     <input type="hidden" id="nxManualWarehouse">
-                    <div id="nxManualWarehouseButtons" class="flex flex-wrap gap-2">
-                        <button type="button" data-warehouse="KHO 1" onclick="selectNXManualCommonWarehouse('KHO 1')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 1</button>
-                        <button type="button" data-warehouse="KHO 2" onclick="selectNXManualCommonWarehouse('KHO 2')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 2</button>
-                        <button type="button" data-warehouse="KHO 3" onclick="selectNXManualCommonWarehouse('KHO 3')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 3</button>
-                        <button type="button" data-warehouse="KHO 4" onclick="selectNXManualCommonWarehouse('KHO 4')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 4</button>
-                        <button type="button" data-warehouse="KHO 5" onclick="selectNXManualCommonWarehouse('KHO 5')"
-                            class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition">KHO 5</button>
-                    </div>
+                    <div id="nxManualWarehouseButtons" class="flex flex-wrap gap-2"></div>
                 </div>
             </div>
             <div class="space-y-3">
@@ -1011,14 +997,7 @@
                             placeholder="Lọc ID SP..."
                             class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
                         <select id="nhapFilterKho" onchange="renderSimpleSheetModule('nhap', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                     </div>
                     <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                         <div
@@ -1234,14 +1213,7 @@
                             placeholder="Lọc ID SP..."
                             class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[140px]">
                         <select id="xuatFilterKho" onchange="renderSimpleSheetModule('xuat', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                     </div>
                     <div class="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                         <div
@@ -1344,14 +1316,7 @@
                     </div>
                     <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-2 shrink-0">
                         <select id="sanphamkhoFilterKho" onchange="renderSimpleSheetModule('sanphamkho', true)"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]">
-                            <option value="">Tất cả kho</option>
-                            <option value="KHO 1">KHO 1</option>
-                            <option value="KHO 2">KHO 2</option>
-                            <option value="KHO 3">KHO 3</option>
-                            <option value="KHO 4">KHO 4</option>
-                            <option value="KHO 5">KHO 5</option>
-                        </select>
+                            class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white min-w-[110px]"><option value="">Tất cả kho</option></select>
                         <input id="sanphamkhoFilterIdSp" list="sanphamkhoProductList"
                             oninput="renderSimpleSheetModule('sanphamkho', true)"
                             placeholder="Lọc ID SP..."
@@ -1407,8 +1372,8 @@
                         </div>
                         <input id="chuyenkhoFilterMdh" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc MDH..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                         <input id="chuyenkhoFilterIdSp" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc ID SP..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
-                        <select id="chuyenkhoFilterKhoDi" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho đi</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select>
-                        <select id="chuyenkhoFilterKhoNhan" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho nhận</option><option>KHO 1</option><option>KHO 2</option><option>KHO 3</option><option>KHO 4</option><option>KHO 5</option></select>
+                        <select id="chuyenkhoFilterKhoDi" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho đi</option></select>
+                        <select id="chuyenkhoFilterKhoNhan" onchange="renderSimpleSheetModule('chuyenkho', true)" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white"><option value="">Tất cả kho nhận</option></select>
                         <input id="chuyenkhoFilterCondition" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc tình trạng..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                         <input id="chuyenkhoFilterStatus" oninput="renderSimpleSheetModule('chuyenkho', true)" placeholder="Lọc trạng thái..." class="px-3 py-2 border border-slate-200 rounded-lg text-xs min-w-[130px]">
                     </div>
@@ -1528,6 +1493,13 @@
             placeholder="Tìm trong TON_NPP..." class="hidden">
         <span id="ton_nppCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
         <div class="ml-auto flex items-center gap-2">
+            <button id="tonNppBulkDeleteBtn" onclick="deleteSelectedTonNppRows()"
+                class="hidden px-3 py-2 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 active:scale-95 transition flex items-center gap-1.5 shadow-sm shadow-rose-200">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Xóa đã chọn (<span id="tonNppSelectedCount">0</span>)</span>
+            </button>
             <button onclick="openSimpleSheetManualDrawer('ton_npp')"
                 class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Thêm = tay</button>
             <button onclick="triggerSimpleSheetExcelUpload('ton_npp')"
@@ -1559,10 +1531,13 @@
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                     <tr>
+                        <th class="w-10 px-4 py-3 text-center"><input type="checkbox" id="ton_nppSelectAll" onchange="toggleSelectAllTonNpp(this.checked)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" title="Chọn tất cả"></th>
                         <th data-sort-module="ton_npp" data-sort-column="id" onclick="toggleSimpleModuleSort('ton_npp', 'id')" class="w-[160px] cursor-pointer select-none">ID <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ngay" onclick="toggleSimpleModuleSort('ton_npp', 'ngay')" class="w-[120px] cursor-pointer select-none">Ngày <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ma_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ma_kh')" class="w-[140px] cursor-pointer select-none">Mã KH <span data-sort-indicator></span></th>
-                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ten_kh')" class="min-w-[150px] cursor-pointer select-none">Tên KH <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="w-[140px] cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_sp" onclick="toggleSimpleModuleSort('ton_npp', 'ten_sp')" class="min-w-[180px] cursor-pointer select-none">Tên SP <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ton_dau" onclick="toggleSimpleModuleSort('ton_npp', 'ton_dau')" class="w-[120px] text-right cursor-pointer select-none">Tồn đầu <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="nhap" onclick="toggleSimpleModuleSort('ton_npp', 'nhap')" class="w-[110px] text-right cursor-pointer select-none">Nhập <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="xuat" onclick="toggleSimpleModuleSort('ton_npp', 'xuat')" class="w-[110px] text-right cursor-pointer select-none">Xuất <span data-sort-indicator></span></th>
@@ -1584,6 +1559,13 @@
             placeholder="Tìm trong TON_NPP..." class="hidden">
         <span id="ton_nppCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
         <div class="ml-auto flex items-center gap-2">
+            <button id="tonNppBulkDeleteBtn" onclick="deleteSelectedTonNppRows()"
+                class="hidden px-3 py-2 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 active:scale-95 transition flex items-center gap-1.5 shadow-sm shadow-rose-200">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Xóa đã chọn (<span id="tonNppSelectedCount">0</span>)</span>
+            </button>
             <button onclick="openSimpleSheetManualDrawer('ton_npp')"
                 class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Thêm = tay</button>
             <button onclick="triggerSimpleSheetExcelUpload('ton_npp')"
@@ -1615,10 +1597,13 @@
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                     <tr>
+                        <th class="w-10 px-4 py-3 text-center"><input type="checkbox" id="ton_nppSelectAll" onchange="toggleSelectAllTonNpp(this.checked)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" title="Chọn tất cả"></th>
                         <th data-sort-module="ton_npp" data-sort-column="id" onclick="toggleSimpleModuleSort('ton_npp', 'id')" class="w-[160px] cursor-pointer select-none">ID <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ngay" onclick="toggleSimpleModuleSort('ton_npp', 'ngay')" class="w-[120px] cursor-pointer select-none">Ngày <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ma_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ma_kh')" class="w-[140px] cursor-pointer select-none">Mã KH <span data-sort-indicator></span></th>
-                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ten_kh')" class="min-w-[150px] cursor-pointer select-none">Tên KH <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="w-[140px] cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_sp" onclick="toggleSimpleModuleSort('ton_npp', 'ten_sp')" class="min-w-[180px] cursor-pointer select-none">Tên SP <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ton_dau" onclick="toggleSimpleModuleSort('ton_npp', 'ton_dau')" class="w-[120px] text-right cursor-pointer select-none">Tồn đầu <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="nhap" onclick="toggleSimpleModuleSort('ton_npp', 'nhap')" class="w-[110px] text-right cursor-pointer select-none">Nhập <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="xuat" onclick="toggleSimpleModuleSort('ton_npp', 'xuat')" class="w-[110px] text-right cursor-pointer select-none">Xuất <span data-sort-indicator></span></th>

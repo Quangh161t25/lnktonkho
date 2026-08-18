@@ -34,6 +34,7 @@
         "nx.manualAdd",
         "nx.upload",
         "nx.confirmWarehouse",
+        "nx.delete",
         "sanpham.manage",
         "doisoat.manage",
         "caidat.manage"

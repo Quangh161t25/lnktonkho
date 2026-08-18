@@ -31,6 +31,7 @@ const CAIDAT_AVAILABLE_ACTIONS = [
     { key: 'nx.manualAdd', name: 'Thêm thủ công đơn Nhập / Xuất', desc: 'Cho phép tạo mới dòng phiếu nhập xuất bằng tay' },
     { key: 'nx.upload', name: 'Tải lên dữ liệu Excel', desc: 'Cho phép upload file Excel nhập/xuất/trả lại' },
     { key: 'nx.confirmWarehouse', name: 'Xác nhận trạng thái kho', desc: 'Cập nhật trạng thái: Đã nhặt hàng, Đã lên xe, Hoàn thành' },
+    { key: 'nx.delete', name: 'Xóa đơn hàng / Bản ghi Tồn NPP', desc: 'Cho phép xóa đơn Nhập, Xuất, Tồn NPP và các bản ghi chi tiết' },
     { key: 'sanpham.manage', name: 'Quản lý Sản phẩm', desc: 'Thêm mới, sửa thông tin & giá bán sản phẩm' },
     { key: 'doisoat.manage', name: 'Quản lý Đối soát', desc: 'Thao tác tải lên và đối chiếu chênh lệch MISA' },
     { key: 'caidat.manage', name: 'Quản trị Phân quyền', desc: 'Thiết kế vai trò và lưu cấu hình phân quyền' }
@@ -1082,7 +1083,7 @@ async function saveCaidatPermissions() {
         updateCaidatSyncStatusUI();
         
         // Fallback to local save
-        savePermissionsConfig(caidatWorkingPermissions);
+        savePermissionsConfig(caidatWorkingPermissions, caidatWorkingSettings);
         setCaidatModified(false);
         alert(`⚠️ Đã lưu cục bộ. Lưu lên Google Sheet gặp sự cố: ${err.message}`);
     } finally {

@@ -16,6 +16,13 @@
             placeholder="Tìm trong TON_NPP..." class="hidden">
         <span id="ton_nppCount" class="text-xs text-slate-500 whitespace-nowrap">0 bản ghi</span>
         <div class="ml-auto flex items-center gap-2">
+            <button id="tonNppBulkDeleteBtn" onclick="deleteSelectedTonNppRows()"
+                class="hidden px-3 py-2 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 active:scale-95 transition flex items-center gap-1.5 shadow-sm shadow-rose-200">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Xóa đã chọn (<span id="tonNppSelectedCount">0</span>)</span>
+            </button>
             <button onclick="openSimpleSheetManualDrawer('ton_npp')"
                 class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Thêm = tay</button>
             <button onclick="triggerSimpleSheetExcelUpload('ton_npp')"
@@ -47,10 +54,13 @@
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                     <tr>
+                        <th class="w-10 px-4 py-3 text-center"><input type="checkbox" id="ton_nppSelectAll" onchange="toggleSelectAllTonNpp(this.checked)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" title="Chọn tất cả"></th>
                         <th data-sort-module="ton_npp" data-sort-column="id" onclick="toggleSimpleModuleSort('ton_npp', 'id')" class="w-[160px] cursor-pointer select-none">ID <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ngay" onclick="toggleSimpleModuleSort('ton_npp', 'ngay')" class="w-[120px] cursor-pointer select-none">Ngày <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ma_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ma_kh')" class="w-[140px] cursor-pointer select-none">Mã KH <span data-sort-indicator></span></th>
-                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_kh" onclick="toggleSimpleModuleSort('ton_npp', 'ten_kh')" class="min-w-[150px] cursor-pointer select-none">Tên KH <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="id_sp" onclick="toggleSimpleModuleSort('ton_npp', 'id_sp')" class="w-[140px] cursor-pointer select-none">ID SP <span data-sort-indicator></span></th>
+                        <th data-sort-module="ton_npp" data-sort-column="ten_sp" onclick="toggleSimpleModuleSort('ton_npp', 'ten_sp')" class="min-w-[180px] cursor-pointer select-none">Tên SP <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="ton_dau" onclick="toggleSimpleModuleSort('ton_npp', 'ton_dau')" class="w-[120px] text-right cursor-pointer select-none">Tồn đầu <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="nhap" onclick="toggleSimpleModuleSort('ton_npp', 'nhap')" class="w-[110px] text-right cursor-pointer select-none">Nhập <span data-sort-indicator></span></th>
                         <th data-sort-module="ton_npp" data-sort-column="xuat" onclick="toggleSimpleModuleSort('ton_npp', 'xuat')" class="w-[110px] text-right cursor-pointer select-none">Xuất <span data-sort-indicator></span></th>

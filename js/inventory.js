@@ -198,8 +198,14 @@ function getFilteredSimpleModuleRows(moduleName) {
                 if (!currentCustomerId || maKh.trim() !== currentCustomerId) return false;
             }
             if ((dateFrom || dateTo) && Number.isNaN(rowDate.getTime())) return false;
-            if (filterMaKh && !maKh.includes(filterMaKh)) return false;
-            if (filterIdSp && !idSp.includes(filterIdSp)) return false;
+            if (filterMaKh) {
+                const tenKh = getCustomerNameById(maKh).toLowerCase();
+                if (!maKh.includes(filterMaKh) && !tenKh.includes(filterMaKh)) return false;
+            }
+            if (filterIdSp) {
+                const tenSp = getProductNameById(idSp).toLowerCase();
+                if (!idSp.includes(filterIdSp) && !tenSp.includes(filterIdSp)) return false;
+            }
             if (dateFrom && rowDate < new Date(`${dateFrom}T00:00:00`)) return false;
             if (dateTo && rowDate > new Date(`${dateTo}T23:59:59.999`)) return false;
             return true;
@@ -358,6 +364,19 @@ function getVisibleSimpleModuleColumnIndexes(moduleName, config) {
         .filter(index => !['nhap', 'dukien', 'xuat', 'chuyenkho'].includes(moduleName) || index !== 0);
 }
 
+
+function getCustomerNameById(maKh) {
+    const id = (maKh || '').toString().trim().toLowerCase();
+    if (!id) return '';
+    const user = (usersData || []).find(u => (u.id || '').toString().trim().toLowerCase() === id);
+    if (user && user.name) return user.name;
+    const xuatRow = (xuatDataRaw || []).slice(1).find(r => (r[4] || '').toString().trim().toLowerCase() === id && r[5]);
+    if (xuatRow && xuatRow[5]) return (xuatRow[5] || '').toString().trim();
+    const nhapRow = (nhapDataRaw || []).slice(1).find(r => (r[4] || '').toString().trim().toLowerCase() === id && r[5]);
+    if (nhapRow && nhapRow[5]) return (nhapRow[5] || '').toString().trim();
+    return '';
+}
+
 function getSimpleModuleDisplayColumns(moduleName, config) {
     if (moduleName === 'sanphamkho') return ['kho', 'id_sp', 'ten_sp', 'ton_dau', 'nhap', 'xuat', 'nhap_ck', 'xuat_ck', 'ton_cuoi'];
     if (moduleName === 'sanpham') {
@@ -365,7 +384,7 @@ function getSimpleModuleDisplayColumns(moduleName, config) {
             ? ['id', 'ten_sp', 'ton_cuoi']
             : ['anh', 'id', 'ten_sp', 'ton_dau', 'nhap', 'xuat', 'ton_cuoi'];
     }
-    if (moduleName === 'ton_npp') return ['id', 'ngay', 'ma_kh', 'id_sp', 'ton_dau', 'nhap', 'xuat', 'ton_cuoi'];
+    if (moduleName === 'ton_npp') return ['id', 'ngay', 'ma_kh', 'ten_kh', 'id_sp', 'ten_sp', 'ton_dau', 'nhap', 'xuat', 'ton_cuoi'];
     if (moduleName === 'doisoat') return ['id', 'ten_sp', 'ton_cuoi', 'ton_misa', 'chenh_lech'];
     if (moduleName === 'dukien') return config.columns.slice(1);
     if (['nhap', 'xuat'].includes(moduleName)) return config.columns.slice(1).filter(column => !['id_nv_nhan', 'id_nv_xuat', 'ngay_dat_hang', 'tinh_trang'].includes(column));
@@ -544,8 +563,16 @@ function getSimpleModuleDisplayValue(moduleName, row, column, index, movementTot
         if (column === 'ton_cuoi') return cleanNumber(row[4]) + totals.nhap - totals.xuat + totals.nhapCk - totals.xuatCk;
         return row[index] || '';
     }
-    // Ton NPP: virtual ton_dau, nhap, xuat
+    // Ton NPP: virtual ten_kh, ten_sp, ton_dau, nhap, xuat
     if (moduleName === 'ton_npp') {
+        if (column === 'ten_kh' || column === 'ten_khach') {
+            const maKh = (row[2] || '').toString().trim();
+            return getCustomerNameById(maKh);
+        }
+        if (column === 'ten_sp') {
+            const idSp = (row[3] || '').toString().trim();
+            return getProductNameById(idSp);
+        }
         if (['ton_dau', 'nhap', 'xuat'].includes(column)) {
             const map = movementTotals?.tonNppMovements || getTonNppMovementMap();
             const rowId = (row[0] || '').toString().trim();
@@ -693,6 +720,29 @@ function renderProductStockDetails(idSp) {
     wrap.classList.remove('hidden');
 }
 
+const SIMPLE_COLUMN_LABELS = {
+    id: 'ID',
+    ngay: 'Ngày',
+    ma_kh: 'Mã KH',
+    ten_kh: 'Tên KH',
+    ten_khach: 'Tên khách',
+    id_sp: 'ID SP',
+    ten_sp: 'Tên SP',
+    ton_dau: 'Tồn đầu',
+    nhap: 'Nhập',
+    xuat: 'Xuất',
+    ton_cuoi: 'Tồn cuối',
+    kho: 'Kho',
+    nhap_ck: 'Nhập CK',
+    xuat_ck: 'Xuất CK',
+    anh: 'Ảnh',
+    model: 'Model',
+    gia_ban: 'Giá bán',
+    ghi_chu: 'Ghi chú',
+    ton_misa: 'Tồn MISA',
+    chenh_lech: 'Chênh lệch'
+};
+
 async function renderSimpleSheetModule(moduleName, resetPage, refreshData = false) {
     if (resetPage) simpleModulePages[moduleName] = 1;
     const config = SIMPLE_SHEET_MODULES[moduleName];
@@ -704,7 +754,9 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
     const displayColumns = getSimpleModuleDisplayColumns(moduleName, config);
     updateSimpleModuleHeaders(moduleName, displayColumns);
 
-    tbody.innerHTML = `<tr><td colspan="${displayColumns.length}" class="px-4 py-10 text-center text-slate-400">Đang tải dữ liệu...</td></tr>`;
+    const isTonNpp = moduleName === 'ton_npp';
+    const totalCols = displayColumns.length + (isTonNpp ? 1 : 0);
+    tbody.innerHTML = `<tr><td colspan="${totalCols}" class="px-4 py-10 text-center text-slate-400">Đang tải dữ liệu...</td></tr>`;
     if (['sanpham', 'sanphamkho', 'doisoat'].includes(moduleName) && (refreshData || !productDataRaw.length || !warehouseProductDataRaw.length || !nhapDataRaw.length || !xuatDataRaw.length || !transferDataRaw.length)) {
         await Promise.all([
             fetchSimpleSheetModule('sanpham'),
@@ -714,8 +766,11 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
             fetchSimpleSheetModule('chuyenkho')
         ]);
     }
-    if (moduleName === 'ton_npp' && (refreshData || !xuatDataRaw.length)) {
-        await fetchSimpleSheetModule('xuat');
+    if (moduleName === 'ton_npp' && (refreshData || !xuatDataRaw.length || !productDataRaw.length)) {
+        await Promise.all([
+            fetchSimpleSheetModule('xuat'),
+            fetchSimpleSheetModule('sanpham')
+        ]);
     }
     if (refreshData || !getSimpleModuleData(moduleName).length) await fetchSimpleSheetModule(moduleName);
     if (moduleName === 'sanphamkho') {
@@ -740,28 +795,42 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
     const page = simpleModulePages[moduleName] || 1;
     const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     tbody.innerHTML = pageRows.length
-        ? pageRows.map(row => `<tr class="hover:bg-slate-50/80 transition-colors ${['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp'].includes(moduleName) ? 'cursor-pointer' : ''}" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})" title="Xem chi tiết sản phẩm"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : '')))))}> ${displayColumns.map((column, displayIndex) => {
+        ? pageRows.map(row => `<tr class="hover:bg-slate-50/80 transition-colors ${['nhap', 'dukien', 'xuat', 'chuyenkho', 'sanpham', 'sanphamkho', 'ton_npp'].includes(moduleName) ? 'cursor-pointer' : ''}" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})" title="Xem chi tiết sản phẩm"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})" title="Double-click để sửa"` : '')))))}>
+            ${isTonNpp ? `<td class="w-10 px-4 py-3 text-center" onclick="event.stopPropagation()"><input type="checkbox" class="ton-npp-row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" value="${row._sheetRow || 0}" ${selectedTonNppSheetRows.has(row._sheetRow) ? 'checked' : ''} onchange="updateTonNppSelection()"></td>` : ''}
+            ${displayColumns.map((column, displayIndex) => {
             const physicalIndex = config.columns.indexOf(column);
             const value = getSimpleModuleDisplayValue(moduleName, row, column, physicalIndex !== -1 ? physicalIndex : displayIndex, movementTotals);
             const align = ['stt', 'so_luong_du_kien', 'slg_thuc_nhan', 'slg', 'don_gia', 'thanh_tien', 'ton_dau', 'ton_sau', 'ton_cuoi', 'ton_misa', 'chenh_lech', 'gia_ban', 'nhap', 'xuat', 'nhap_ck', 'xuat_ck'].includes(column) ? ' text-right' : '';
             return `<td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap${align}${getSimpleModuleCellClass(moduleName, column)}">${renderSimpleModuleCell(moduleName, column, value)}</td>`;
         }).join('')}</tr>`).join('')
-        : `<tr><td colspan="${displayColumns.length}" class="px-4 py-10 text-center text-slate-400">Không có dữ liệu phù hợp.</td></tr>`;
+        : `<tr><td colspan="${totalCols}" class="px-4 py-10 text-center text-slate-400">Không có dữ liệu phù hợp.</td></tr>`;
 
     if (mobile) {
         mobile.innerHTML = pageRows.map(row => `
-            <div class="mobile-card" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})"` : '')))))}>
+            <div class="mobile-card relative" ${moduleName === 'dukien' ? `ondblclick="openExpectedManualDrawer(${row._sheetRow || 0})"` : (['nhap', 'xuat'].includes(moduleName) ? `ondblclick="openDetailRowEditDrawer('${moduleName}', ${row._sheetRow || 0})"` : (moduleName === 'chuyenkho' ? `ondblclick="openWarehouseTransferEditDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanpham' ? `ondblclick="openProductManualDrawer(${row._sheetRow || 0})"` : (moduleName === 'sanphamkho' ? `ondblclick="openWarehouseProductDrawer(${row._sheetRow || 0})"` : (moduleName === 'ton_npp' ? `ondblclick="openTonNppManualDrawer(${row._sheetRow || 0})"` : '')))))}>
+                ${isTonNpp ? `
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100" onclick="event.stopPropagation()">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" class="ton-npp-row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="${row._sheetRow || 0}" ${selectedTonNppSheetRows.has(row._sheetRow) ? 'checked' : ''} onchange="updateTonNppSelection()">
+                            <span>Chọn bản ghi</span>
+                        </label>
+                        <button onclick="openTonNppManualDrawer(${row._sheetRow || 0})" class="px-2 py-1 text-[10px] font-bold text-blue-600 bg-blue-50 rounded hover:bg-blue-100">Chi tiết / Sửa</button>
+                    </div>
+                ` : ''}
                 ${displayColumns.map((column, displayIndex) => {
             const physicalIndex = config.columns.indexOf(column);
             const value = getSimpleModuleDisplayValue(moduleName, row, column, physicalIndex !== -1 ? physicalIndex : displayIndex, movementTotals);
             return `
                     <div class="flex justify-between gap-3 py-1">
-                        <span class="mobile-card-label">${escAttr(column)}</span>
+                        <span class="mobile-card-label">${escAttr(typeof SIMPLE_COLUMN_LABELS !== 'undefined' && SIMPLE_COLUMN_LABELS[column] ? SIMPLE_COLUMN_LABELS[column] : column)}</span>
                         <span class="mobile-card-value text-right break-all">${escAttr(value)}</span>
                     </div>
                 `}).join('')}
             </div>
         `).join('');
+    }
+    if (isTonNpp) {
+        updateTonNppSelectionUI();
     }
     renderPagination(rows.length, page, `${moduleName}Pagination`, `goSimpleModulePage.bind(null, '${moduleName}')`);
 }
@@ -1204,7 +1273,7 @@ function getDetailUpsertKey(row) {
 async function upsertDetailRows(moduleName, rows) {
     const config = getWritableSimpleModule(moduleName);
     if (!config || !['nhap', 'dukien', 'xuat'].includes(moduleName) || !rows.length) return false;
-    if (rows.some(row => !isAllowedWarehouse(row[11]))) return alert("Kho phải là một trong các giá trị: KHO 1, KHO 2, KHO 3, KHO 4, KHO 5.");
+    if (rows.some(row => !isAllowedWarehouse(row[11]))) return alert(`Kho phải là một trong các giá trị: ${getWarehouseOptions().join(', ')}.`);
     await fetchSimpleSheetModule(moduleName);
 
     const normalizedRows = new Map();
@@ -1339,7 +1408,7 @@ async function upsertProductRows(rows) {
 async function upsertWarehouseProductRows(rows) {
     const config = SIMPLE_SHEET_MODULES.sanphamkho;
     if (!rows.length) return false;
-    if (rows.some(row => !isAllowedWarehouse(row[1]))) return alert("Kho phải là một trong các giá trị: KHO 1, KHO 2, KHO 3, KHO 4, KHO 5.");
+    if (rows.some(row => !isAllowedWarehouse(row[1]))) return alert(`Kho phải là một trong các giá trị: ${getWarehouseOptions().join(', ')}.`);
     if (!warehouseProductDataRaw || warehouseProductDataRaw.length <= 1) await fetchSimpleSheetModule('sanphamkho');
 
     const normalizedRows = new Map();
@@ -1641,6 +1710,7 @@ async function openWarehouseTransferDrawer() {
     document.getElementById('warehouseTransferStatus').value = '';
     document.getElementById('warehouseTransferCommonFrom').value = '';
     document.getElementById('warehouseTransferCommonTo').value = '';
+    populateWarehouseTransferCommonDropdowns();
     populateWarehouseTransferProducts();
     document.getElementById('warehouseTransferRows').innerHTML = '';
     addWarehouseTransferProductRow();
@@ -1674,6 +1744,7 @@ async function openWarehouseTransferEditDrawer(sheetRow) {
     const commonTo = [...new Set(rows.map(item => item.row[7]).filter(isAllowedWarehouse))];
     document.getElementById('warehouseTransferCommonFrom').value = commonFrom.length === 1 ? commonFrom[0] : '';
     document.getElementById('warehouseTransferCommonTo').value = commonTo.length === 1 ? commonTo[0] : '';
+    populateWarehouseTransferCommonDropdowns();
     populateWarehouseTransferProducts();
     document.getElementById('warehouseTransferRows').innerHTML = '';
     rows.forEach(item => addWarehouseTransferProductRow({
@@ -1775,7 +1846,7 @@ function updateWarehouseTransferProduct(input) {
 
 function validateWarehouseTransferRows(rows) {
     if (rows.some(row => !isAllowedWarehouse(row[6]) || !isAllowedWarehouse(row[7]))) {
-        alert("Kho đi và Kho nhận phải là một trong các giá trị: KHO 1, KHO 2, KHO 3, KHO 4, KHO 5.");
+        alert(`Kho đi và Kho nhận phải là một trong các giá trị: ${getWarehouseOptions().join(', ')}.`);
         return false;
     }
     if (rows.some(row => row[6] === row[7])) {
@@ -2039,6 +2110,7 @@ async function openWarehouseProductDrawer(sheetRow = 0) {
     if (!canCurrentUser('sanpham.manage')) return alert("Bạn không có quyền cập nhật sản phẩm kho.");
     warehouseProductEditSheetRow = Number(sheetRow || 0);
     warehouseProductDuplicateSheetRows = [];
+    populateWarehouseProductDrawerKho();
     const title = document.getElementById('warehouseProductDrawerTitle');
     if (title) title.textContent = warehouseProductEditSheetRow ? 'Sửa sản phẩm kho' : 'Thêm sản phẩm kho';
     setWarehouseSelectValue('warehouseProductKho', '');
@@ -2089,7 +2161,7 @@ async function saveWarehouseProduct() {
     const idSp = document.getElementById('warehouseProductIdSp').value.trim();
     const tenSp = document.getElementById('warehouseProductName').value.trim() || getProductNameById(idSp);
     if (!kho || !idSp) return alert("Vui lòng nhập Kho và ID SP.");
-    if (!isAllowedWarehouse(kho)) return alert("Vui lòng chọn Kho từ KHO 1 đến KHO 5.");
+    if (!isAllowedWarehouse(kho)) return alert(`Vui lòng chọn Kho hợp lệ (${getWarehouseOptions().join(', ')}).`);
     const row = [
         `${kho}|${idSp}`,
         kho,
@@ -2718,6 +2790,7 @@ async function openNXManualDrawer(targetModule = '') {
     document.getElementById('nxManualCustomerId').value = '';
     configureNXManualExpectedFields(simpleSheetManualModule);
     setWarehouseSelectValue('nxManualWarehouse', '');
+    renderNXManualCommonWarehouseButtons();
     document.getElementById('nxManualRows').innerHTML = '';
     populateNXManualProductList();
     populateNXManualCustomers();
@@ -2767,6 +2840,7 @@ async function openDetailRowEditDrawer(moduleName, sheetRow) {
     document.getElementById('nxManualCustomerId').value = row[4] || '';
     configureNXManualExpectedFields(moduleName, row);
     setNXManualCommonWarehouse(orderRows.map(item => item.row));
+    renderNXManualCommonWarehouseButtons();
     populateNXManualProductList();
     populateNXManualCustomers();
     populateNXManualEmployees();
@@ -2871,7 +2945,7 @@ function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
     if (!select) return;
     const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
         ? getAllowedWarehousesForCurrentUser()
-        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
     const currentVal = (select.value || '').trim();
     let html = '';
     if (includeAllOption && allowed.length > 1) {
@@ -2890,6 +2964,30 @@ function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
     } else {
         select.value = allowed[0] || '';
     }
+}
+
+function populateWarehouseTransferCommonDropdowns() {
+    const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
+        ? getAllowedWarehousesForCurrentUser()
+        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    ['warehouseTransferCommonFrom', 'warehouseTransferCommonTo'].forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const curVal = select.value;
+        select.innerHTML = '<option value="">Chọn kho...</option>' + allowed.map(k => `<option value="${escAttr(k)}">${escAttr(k)}</option>`).join('');
+        if (curVal && allowed.includes(curVal)) select.value = curVal;
+    });
+}
+
+function populateWarehouseProductDrawerKho() {
+    const select = document.getElementById('warehouseProductKho');
+    if (!select) return;
+    const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
+        ? getAllowedWarehousesForCurrentUser()
+        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    const curVal = select.value;
+    select.innerHTML = '<option value="">Chọn kho...</option>' + allowed.map(k => `<option value="${escAttr(k)}">${escAttr(k)}</option>`).join('');
+    if (curVal && allowed.includes(curVal)) select.value = curVal;
 }
 
 function populateNXManualEmployees() {
@@ -2997,17 +3095,24 @@ function updateNXManualWarehouseRow(select) {
     updateNXManualStock(select.closest('.nx-manual-row'));
 }
 
+function renderNXManualCommonWarehouseButtons() {
+    const container = document.getElementById('nxManualWarehouseButtons');
+    if (!container) return;
+    const warehouses = (typeof getAllowedWarehousesForCurrentUser === 'function')
+        ? getAllowedWarehousesForCurrentUser()
+        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    const selected = (document.getElementById('nxManualWarehouse')?.value || '').trim();
+    container.innerHTML = warehouses.map(kho => {
+        const active = kho.toUpperCase() === selected.toUpperCase();
+        return `
+            <button type="button" data-warehouse="${escAttr(kho)}" onclick="selectNXManualCommonWarehouse('${escAttr(kho)}')"
+                class="px-3 py-2 rounded-lg border text-xs font-bold transition ${active ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600'}">${escAttr(kho)}</button>
+        `;
+    }).join('');
+}
+
 function updateNXManualCommonWarehouseButtons() {
-    const selected = document.getElementById('nxManualWarehouse')?.value || '';
-    document.querySelectorAll('#nxManualWarehouseButtons [data-warehouse]').forEach(button => {
-        const active = button.dataset.warehouse === selected;
-        button.classList.toggle('bg-blue-600', active);
-        button.classList.toggle('border-blue-600', active);
-        button.classList.toggle('text-white', active);
-        button.classList.toggle('bg-white', !active);
-        button.classList.toggle('border-slate-200', !active);
-        button.classList.toggle('text-slate-500', !active);
-    });
+    renderNXManualCommonWarehouseButtons();
 }
 
 function selectNXManualCommonWarehouse(kho) {
@@ -3049,6 +3154,10 @@ async function generateNXManualOrderId() {
 function addNXManualProductRow(data = {}) {
     const wrap = document.getElementById('nxManualRows');
     if (!wrap) return;
+    const allowedWarehouses = (typeof getAllowedWarehousesForCurrentUser === 'function')
+        ? getAllowedWarehousesForCurrentUser()
+        : (typeof getWarehouseOptions === 'function' ? getWarehouseOptions() : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5']);
+    const defaultWarehouse = data.kho || document.getElementById('nxManualWarehouse')?.value || (typeof getDefaultWarehouse === 'function' ? getDefaultWarehouse() : (allowedWarehouses[0] || ''));
     const rowId = `nxm_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     const row = document.createElement('tr');
     row.className = 'nx-manual-row hover:bg-slate-50/80 transition-colors';
@@ -3069,7 +3178,7 @@ function addNXManualProductRow(data = {}) {
             <select data-field="kho" onchange="updateNXManualWarehouseRow(this)"
                 class="w-full min-w-[120px] px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Chọn kho...</option>
-                ${WAREHOUSE_OPTIONS.map(kho => `<option value="${escAttr(kho)}">${escAttr(kho)}</option>`).join('')}
+                ${allowedWarehouses.map(kho => `<option value="${escAttr(kho)}">${escAttr(kho)}</option>`).join('')}
             </select>
         </td>
         <td class="px-3 py-2 align-middle">
@@ -3109,8 +3218,7 @@ function addNXManualProductRow(data = {}) {
     wrap.appendChild(row);
     row.querySelector('[data-field="idSp"]').value = data.idSp || '';
     row.querySelector('[data-field="tenSp"]').value = data.productName || '';
-    const defaultWarehouse = data.kho || document.getElementById('nxManualWarehouse')?.value || '';
-    row.querySelector('[data-field="kho"]').value = isAllowedWarehouse(defaultWarehouse) ? defaultWarehouse : '';
+    row.querySelector('[data-field="kho"]').value = isAllowedWarehouse(defaultWarehouse) ? defaultWarehouse : (allowedWarehouses[0] || '');
     row.querySelector('[data-field="slg"]').value = data.slg ?? 1;
     row.querySelector('[data-field="donGia"]').value = data.donGia ?? 0;
     row.querySelector('[data-field="thanhTien"]').value = data.thanhTien ?? 0;
@@ -3238,7 +3346,7 @@ async function transferNXManualOrder() {
 }
 
 async function deleteNXManualOrder() {
-    if (!canCurrentUser('nx.manualAdd')) return alert("Bạn không có quyền thực hiện thao tác này.");
+    if (!canCurrentUser('nx.delete') && !canCurrentUser('nx.manualAdd')) return alert("Bạn không có quyền thực hiện thao tác này.");
     const moduleName = simpleSheetManualModule;
     if (!['nhap', 'dukien', 'xuat'].includes(moduleName)) return alert("Vui lòng mở chi tiết một đơn đã tồn tại.");
 
@@ -3294,7 +3402,6 @@ async function deleteNXManualOrder() {
         await fetchSimpleSheetModule(moduleName);
         await renderSimpleSheetModule(moduleName);
         closeNXManualDrawer();
-        alert(`Đã xóa đơn ${moduleLabel} ${mdh}.`);
     } catch (error) {
         console.error("Delete order error:", error);
         alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
@@ -3352,7 +3459,7 @@ async function saveNXManual() {
     }).filter(Boolean);
 
     if (detailRows.length === 0) return alert("Vui lòng nhập ít nhất 1 sản phẩm có số lượng lớn hơn 0.");
-    if (detailRows.some(item => !isAllowedWarehouse(item.kho))) return alert("Vui lòng chọn Kho từ KHO 1 đến KHO 5 cho từng sản phẩm.");
+    if (detailRows.some(item => !isAllowedWarehouse(item.kho))) return alert(`Vui lòng chọn Kho hợp lệ (${getWarehouseOptions().join(', ')}) cho từng sản phẩm.`);
 
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner !w-4 !h-4 !border-white/20 !border-l-white !m-0"></div> <span>Đang lưu...</span>';
@@ -3426,6 +3533,140 @@ async function saveNXManual() {
 
 // ─── Module: Tồn NPP ──────────────────────────────────────────
 let tonNppManualEditSheetRow = 0;
+let selectedTonNppSheetRows = new Set();
+
+function toggleSelectAllTonNpp(checked) {
+    const checkboxes = document.querySelectorAll('.ton-npp-row-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = checked;
+        const rowNum = Number(cb.value);
+        if (rowNum) {
+            if (checked) selectedTonNppSheetRows.add(rowNum);
+            else selectedTonNppSheetRows.delete(rowNum);
+        }
+    });
+    updateTonNppSelectionUI();
+}
+
+function updateTonNppSelection() {
+    selectedTonNppSheetRows.clear();
+    const checkboxes = document.querySelectorAll('.ton-npp-row-checkbox:checked');
+    checkboxes.forEach(cb => {
+        const rowNum = Number(cb.value);
+        if (rowNum) selectedTonNppSheetRows.add(rowNum);
+    });
+    const allCheckboxes = document.querySelectorAll('.ton-npp-row-checkbox');
+    const selectAllCb = document.getElementById('ton_nppSelectAll');
+    if (selectAllCb && allCheckboxes.length > 0) {
+        selectAllCb.checked = checkboxes.length === allCheckboxes.length;
+        selectAllCb.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+    }
+    updateTonNppSelectionUI();
+}
+
+function updateTonNppSelectionUI() {
+    const count = selectedTonNppSheetRows.size;
+    const countSpan = document.getElementById('tonNppSelectedCount');
+    const bulkBtn = document.getElementById('tonNppBulkDeleteBtn');
+    if (countSpan) countSpan.textContent = count;
+    if (bulkBtn) {
+        if (count > 0) bulkBtn.classList.remove('hidden');
+        else bulkBtn.classList.add('hidden');
+    }
+}
+
+async function deleteTonNppSheetRows(sheetRows) {
+    if (!sheetRows || !sheetRows.length) return;
+    const config = SIMPLE_SHEET_MODULES.ton_npp;
+    if (!config) throw new Error("Cấu hình TON_NPP không tồn tại.");
+    const token = await getAccessToken();
+    const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}?fields=sheets.properties(sheetId,title)`;
+    const metadataResponse = await fetch(metadataUrl, { headers: { "Authorization": `Bearer ${token}` } });
+    if (!metadataResponse.ok) throw new Error(`HTTP ${metadataResponse.status}`);
+    const metadata = await metadataResponse.json();
+    const sheet = (metadata.sheets || []).find(item => item.properties?.title === config.sheetName());
+    if (!sheet) throw new Error(`Sheet not found: ${config.sheetName()}`);
+    const requests = [...sheetRows].sort((a, b) => b - a).map(sheetRow => ({
+        deleteDimension: {
+            range: {
+                sheetId: sheet.properties.sheetId,
+                dimension: 'ROWS',
+                startIndex: sheetRow - 1,
+                endIndex: sheetRow
+            }
+        }
+    }));
+    const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}:batchUpdate`, {
+        method: 'POST',
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ requests })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+}
+
+async function deleteTonNppManualRecord() {
+    if (!canCurrentUser('nx.delete') && !canCurrentUser('nx.manualAdd')) {
+        return alert("Bạn không có quyền xóa bản ghi Tồn NPP.");
+    }
+    if (!tonNppManualEditSheetRow) return alert("Không tìm thấy bản ghi để xóa.");
+    const id = document.getElementById('tonNppManualId')?.value || '';
+    if (!confirm(`Bạn có chắc chắn muốn xóa bản ghi Tồn NPP ${id ? `"${id}"` : ''}? Thao tác này không thể hoàn tác.`)) return;
+
+    const btn = document.getElementById('tonNppManualDeleteBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner !w-4 !h-4 !border-white/20 !border-l-white !m-0"></div> <span>Đang xóa...</span>';
+    }
+    try {
+        await deleteTonNppSheetRows([tonNppManualEditSheetRow]);
+        await fetchSimpleSheetModule('ton_npp');
+        await renderSimpleSheetModule('ton_npp');
+        closeTonNppManualDrawer();
+    } catch (err) {
+        console.error("Delete TON_NPP error:", err);
+        alert("Không thể xóa bản ghi Tồn NPP. Vui lòng thử lại.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Xóa đơn</span>';
+        }
+    }
+}
+
+async function deleteSelectedTonNppRows() {
+    if (!canCurrentUser('nx.delete') && !canCurrentUser('nx.manualAdd')) {
+        return alert("Bạn không có quyền xóa bản ghi Tồn NPP.");
+    }
+    const rowsToDelete = Array.from(selectedTonNppSheetRows);
+    if (!rowsToDelete.length) return alert("Vui lòng chọn ít nhất 1 bản ghi để xóa.");
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${rowsToDelete.length} bản ghi Tồn NPP đã chọn không? Thao tác này không thể hoàn tác.`)) return;
+
+    const bulkBtn = document.getElementById('tonNppBulkDeleteBtn');
+    if (bulkBtn) {
+        bulkBtn.disabled = true;
+        bulkBtn.innerHTML = '<div class="spinner !w-3.5 !h-3.5 !border-white/20 !border-l-white !m-0 inline-block mr-1"></div> <span>Đang xóa...</span>';
+    }
+    try {
+        await deleteTonNppSheetRows(rowsToDelete);
+        selectedTonNppSheetRows.clear();
+        await fetchSimpleSheetModule('ton_npp');
+        await renderSimpleSheetModule('ton_npp');
+    } catch (err) {
+        console.error("Bulk delete TON_NPP error:", err);
+        alert("Lỗi khi xóa các bản ghi Tồn NPP: " + err.message);
+    } finally {
+        if (bulkBtn) {
+            bulkBtn.disabled = false;
+            bulkBtn.innerHTML = `
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Xóa đã chọn (<span id="tonNppSelectedCount">0</span>)</span>
+            `;
+            updateTonNppSelectionUI();
+        }
+    }
+}
 
 function generateTonNppManualId() {
     const random = Math.floor(1000 + Math.random() * 9000);
@@ -3439,6 +3680,8 @@ function openTonNppManualDrawer(sheetRow = 0) {
     tonNppManualEditSheetRow = Number(sheetRow || 0);
     const title = document.getElementById('tonNppManualDrawerTitle');
     if (title) title.textContent = tonNppManualEditSheetRow ? 'Sửa Tồn NPP' : 'Thêm Tồn NPP';
+    const deleteBtn = document.getElementById('tonNppManualDeleteBtn');
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', !tonNppManualEditSheetRow);
 
     const customerList = document.getElementById('tonNppCustomerList');
     if (customerList) {
@@ -3483,6 +3726,8 @@ function closeTonNppManualDrawer() {
     const overlay = document.getElementById('tonNppManualDrawerOverlay');
     if (!drawer || !overlay) return;
     tonNppManualEditSheetRow = 0;
+    const deleteBtn = document.getElementById('tonNppManualDeleteBtn');
+    if (deleteBtn) deleteBtn.classList.add('hidden');
     drawer.classList.add('translate-x-full');
     setTimeout(() => overlay.classList.add('hidden'), 300);
 }
