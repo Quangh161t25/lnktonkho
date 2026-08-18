@@ -167,9 +167,35 @@ const DEFAULT_PERMISSIONS = {
     },
     userRestrictions: {
         'KH00206': { hiddenProductIds: ['TK-0348', 'TK-0318', 'TK-0320', 'TK-0324'] }
+    },
+    userWarehouses: {
+        'dự': ['KHO 1']
     }
 };
 let appPermissions = JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
+
+function getAllowedWarehousesForCurrentUser() {
+    const allWarehouses = (appSettings && appSettings.warehouses && appSettings.warehouses.length > 0)
+        ? appSettings.warehouses
+        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+    if (!currentUser) return allWarehouses;
+    const roleKey = (resolveRoleKey(currentUser.role) || '').toUpperCase();
+    if (['ADMIN', 'KT', 'KD', 'NVKD', 'NPP'].includes(roleKey)) {
+        return allWarehouses;
+    }
+    const userWhs = appPermissions.userWarehouses && appPermissions.userWarehouses[currentUser.id];
+    if (Array.isArray(userWhs) && userWhs.length > 0) {
+        return userWhs;
+    }
+    return allWarehouses;
+}
+
+function canUserAccessWarehouse(khoName) {
+    if (!khoName) return true;
+    const allowed = getAllowedWarehousesForCurrentUser();
+    const target = khoName.toString().trim().toUpperCase();
+    return allowed.some(k => k.toString().trim().toUpperCase() === target);
+}
 
 function renderPagination(totalItems, currentPage, containerId, onPageChange) {
     const totalPages = Math.ceil(totalItems / PAGE_SIZE);
@@ -299,6 +325,12 @@ async function confirmNXWarehouseRow(sheetRow) {
     const row = nxDataRaw[rowIndex];
     if (!row || !isNXExportRow(row)) {
         alert("Chỉ xác nhận kho cho dòng XUẤT.");
+        return;
+    }
+
+    const rowKho = (row[11] || '').toString().trim();
+    if (rowKho && typeof canUserAccessWarehouse === 'function' && !canUserAccessWarehouse(rowKho)) {
+        alert(`Bạn không phụ trách ${rowKho}. Không thể thực hiện xác nhận trên đơn này.`);
         return;
     }
 
@@ -521,6 +553,14 @@ function parseCaiDatSheetRows(rows) {
             parsedPermissions.userRestrictions[userId] = { hiddenProductIds: hiddenIds };
         }
 
+        // Parse User Warehouse Assignment (e.g. USER_KHO_du)
+        else if (id.startsWith('USER_KHO_')) {
+            const userId = id.slice(9);
+            const whList = val.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+            if (!parsedPermissions.userWarehouses) parsedPermissions.userWarehouses = {};
+            parsedPermissions.userWarehouses[userId] = whList;
+        }
+
         // Parse Data Scopes (e.g. SCOPE_NPP_SANPHAM, SCOPE_NVKD_NX...)
         else if (id.startsWith('SCOPE_')) {
             const parts = id.slice(6).split('_');
@@ -562,6 +602,14 @@ function convertPermissionsAndSettingsToSheetRows(permissions, settings) {
         const acts = Array.isArray(rObj.actions) ? rObj.actions.join(', ') : '';
         rows.push([`ROLE_${rKey}_MODULES`, `Modules vai trò ${rKey}`, mods, "VAI_TRO", "list", `Các module được phép truy cập của vai trò ${rKey}`, nowStr, author]);
         rows.push([`ROLE_${rKey}_ACTIONS`, `Quyền thao tác ${rKey}`, acts, "QUYEN_THAO_TAC", "list", `Quyền thực thi hành động của vai trò ${rKey}`, nowStr, author]);
+    });
+
+    // User Warehouse Assignments
+    Object.entries(p.userWarehouses || {}).forEach(([uId, whList]) => {
+        const whStr = Array.isArray(whList) ? whList.join(', ') : (whList || '');
+        if (whStr) {
+            rows.push([`USER_KHO_${uId}`, `Phân quyền kho tài khoản ${uId}`, whStr, "PHAN_QUYEN_KHO", "list", `Danh sách các kho phụ trách của tài khoản ${uId}`, nowStr, author]);
+        }
     });
 
     // User Restrictions
@@ -667,7 +715,8 @@ async function loadPermissionsConfig() {
                 modules: { ...DEFAULT_PERMISSIONS.modules, ...(parsed.modules || {}) },
                 roles: { ...DEFAULT_PERMISSIONS.roles, ...(parsed.roles || {}) },
                 dataScopes: { ...DEFAULT_PERMISSIONS.dataScopes, ...(parsed.dataScopes || {}) },
-                userRestrictions: { ...DEFAULT_PERMISSIONS.userRestrictions, ...(parsed.userRestrictions || {}) }
+                userRestrictions: { ...DEFAULT_PERMISSIONS.userRestrictions, ...(parsed.userRestrictions || {}) },
+                userWarehouses: { ...DEFAULT_PERMISSIONS.userWarehouses, ...(parsed.userWarehouses || {}) }
             };
             return appPermissions;
         }
@@ -681,7 +730,8 @@ async function loadPermissionsConfig() {
             modules: { ...DEFAULT_PERMISSIONS.modules, ...(data.modules || {}) },
             roles: { ...DEFAULT_PERMISSIONS.roles, ...(data.roles || {}) },
             dataScopes: { ...DEFAULT_PERMISSIONS.dataScopes, ...(data.dataScopes || {}) },
-            userRestrictions: { ...DEFAULT_PERMISSIONS.userRestrictions, ...(data.userRestrictions || {}) }
+            userRestrictions: { ...DEFAULT_PERMISSIONS.userRestrictions, ...(data.userRestrictions || {}) },
+            userWarehouses: { ...DEFAULT_PERMISSIONS.userWarehouses, ...(data.userWarehouses || {}) }
         };
     } catch (err) {
         console.warn("Permission config fallback:", err);

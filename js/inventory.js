@@ -213,6 +213,12 @@ function getFilteredSimpleModuleRows(moduleName) {
             if (reconciliationStatusFilter === 'du' && difference !== 0) return false;
             if (reconciliationStatusFilter === 'thieu' && difference >= 0) return false;
         }
+        if (moduleName === 'sanphamkho') {
+            if (typeof canUserAccessWarehouse === 'function' && !canUserAccessWarehouse(row[1])) return false;
+        }
+        if (['nhap', 'xuat'].includes(moduleName)) {
+            if (typeof canUserAccessWarehouse === 'function' && !canUserAccessWarehouse(row[11])) return false;
+        }
         const rowKho = (row[moduleName === 'sanphamkho' ? 1 : 11] || '').toString().toLowerCase().trim();
         if (filterKho && rowKho !== filterKho) return false;
         if (moduleName === 'sanphamkho' && filterIdSp) {
@@ -221,6 +227,7 @@ function getFilteredSimpleModuleRows(moduleName) {
             if (!rowIdSp.includes(selectedIdSp)) return false;
         }
         if (isTransferModule) {
+            if (typeof canUserAccessWarehouse === 'function' && !canUserAccessWarehouse(row[6]) && !canUserAccessWarehouse(row[7])) return false;
             const rowDate = parseSimpleSheetDate(row[1]);
             const mdh = (row[2] || '').toString().toLowerCase();
             const idSp = (row[3] || '').toString().toLowerCase();
@@ -711,7 +718,17 @@ async function renderSimpleSheetModule(moduleName, resetPage, refreshData = fals
         await fetchSimpleSheetModule('xuat');
     }
     if (refreshData || !getSimpleModuleData(moduleName).length) await fetchSimpleSheetModule(moduleName);
-    if (moduleName === 'sanphamkho') populateWarehouseProductFilterList();
+    if (moduleName === 'sanphamkho') {
+        populateWarehouseProductFilterList();
+        populateWarehouseFilterDropdown('sanphamkhoFilterKho');
+    } else if (moduleName === 'nhap') {
+        populateWarehouseFilterDropdown('nhapFilterKho');
+    } else if (moduleName === 'xuat') {
+        populateWarehouseFilterDropdown('xuatFilterKho');
+    } else if (moduleName === 'chuyenkho') {
+        populateWarehouseFilterDropdown('chuyenkhoFilterKhoDi');
+        populateWarehouseFilterDropdown('chuyenkhoFilterKhoNhan');
+    }
     const movementTotals = moduleName === 'sanphamkho' ? getWarehouseMovementTotals() : new Map();
     if (moduleName === 'sanpham') movementTotals.productAggregates = getProductAggregates();
     if (moduleName === 'ton_npp') movementTotals.tonNppMovements = getTonNppMovementMap();
@@ -2847,6 +2864,32 @@ function populateWarehouseProductFilterList() {
     list.innerHTML = getProductCatalog()
         .map(p => `<option value="${escAttr(p.id)} - ${escAttr(p.name)}"></option>`)
         .join('');
+}
+
+function populateWarehouseFilterDropdown(selectId, includeAllOption = true) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const allowed = (typeof getAllowedWarehousesForCurrentUser === 'function')
+        ? getAllowedWarehousesForCurrentUser()
+        : ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+    const currentVal = (select.value || '').trim();
+    let html = '';
+    if (includeAllOption && allowed.length > 1) {
+        html += '<option value="">Tất cả kho</option>';
+    }
+    allowed.forEach(k => {
+        html += `<option value="${escAttr(k)}">${escAttr(k)}</option>`;
+    });
+    select.innerHTML = html;
+    if (currentVal && allowed.some(a => a.toLowerCase() === currentVal.toLowerCase())) {
+        select.value = currentVal;
+    } else if (allowed.length === 1) {
+        select.value = allowed[0];
+    } else if (includeAllOption) {
+        select.value = '';
+    } else {
+        select.value = allowed[0] || '';
+    }
 }
 
 function populateNXManualEmployees() {

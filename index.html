@@ -1973,20 +1973,58 @@
         </div>
     </div>
 
-    <!-- Tab 3: User-Specific Restrictions -->
+    <!-- Tab 3: User-Specific Restrictions & Warehouse Permissions -->
     <div id="caidat-tab-content-users" class="caidat-tab-content hidden flex-1 min-h-0 overflow-y-auto p-6 flex flex-col gap-6">
+        <!-- Section 1: User Warehouse Assignment -->
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Giới hạn đặc biệt theo Tài khoản (User Restrictions)</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Ẩn mã sản phẩm cụ thể hoặc thiết lập giới hạn riêng biệt cho từng tài khoản</p>
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    Phân quyền Kho Phụ trách theo Nhân viên (User Warehouse Permissions)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Chỉ định cụ thể kho hàng được phép xem, nhập, xuất và xác nhận kho cho từng tài khoản</p>
             </div>
-            <button onclick="openCaidatAddUserRestrictionModal()"
+            <button onclick="openCaidatUserWarehouseModal()"
                 class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm shadow-blue-200">
-                <span class="text-sm font-bold">+</span> Thêm giới hạn cho User
+                <span class="text-sm font-bold">+</span> Phân quyền kho cho User
             </button>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-[300px] flex flex-col">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
+                        <tr>
+                            <th class="px-6 py-3.5 w-40">Mã Tài khoản</th>
+                            <th class="px-6 py-3.5 w-48">Tên Người dùng</th>
+                            <th class="px-6 py-3.5 w-32">Vai trò</th>
+                            <th class="px-6 py-3.5">Danh sách Kho được phân quyền</th>
+                            <th class="px-6 py-3.5 w-24 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="caidatUserWarehousesTableBody" class="divide-y divide-slate-100 text-xs">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 2: User Product Restrictions -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                    Giới hạn Ẩn sản phẩm theo Tài khoản (User Product Restrictions)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Ẩn mã sản phẩm cụ thể cho từng tài khoản khi xem danh sách sản phẩm hoặc tồn kho</p>
+            </div>
+            <button onclick="openCaidatAddUserRestrictionModal()"
+                class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm">
+                <span class="text-sm font-bold">+</span> Thêm giới hạn ẩn SP
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             <div class="overflow-x-auto flex-1">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
@@ -2137,6 +2175,44 @@
         </div>
     </div>
 
+    <!-- Modal: Add / Edit User Warehouse Permissions -->
+    <div id="caidatUserWarehouseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 id="caidatUserWarehouseModalTitle" class="font-bold text-slate-800 text-sm">Phân quyền Kho cho Người dùng</h3>
+                <button onclick="closeCaidatUserWarehouseModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="font-bold text-slate-600 uppercase block mb-1">Chọn Tài khoản / Người dùng</label>
+                    <select id="caidatWarehouseUserSelect" onchange="handleCaidatWarehouseUserSelectChange(this.value)" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <!-- Injected dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-bold text-slate-600 uppercase">Danh sách Kho được phép phụ trách</label>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="selectAllCaidatWarehouseCheckboxes(true)" class="text-[10px] font-bold text-blue-600 hover:underline">Tất cả kho</button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" onclick="selectAllCaidatWarehouseCheckboxes(false)" class="text-[10px] font-bold text-slate-500 hover:underline">Bỏ chọn hết</button>
+                        </div>
+                    </div>
+                    <div id="caidatWarehouseCheckboxesContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <!-- Checkboxes injected dynamically -->
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-blue-800 text-[11px] leading-relaxed">
+                    📦 <strong>Lưu ý:</strong> Tài khoản này khi xem các module <em>Sản phẩm kho, Nhập, Xuất, Điều chuyển</em> sẽ chỉ thấy dữ liệu và chỉ được xác nhận các đơn thuộc những kho được chọn ở trên.
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button onclick="closeCaidatUserWarehouseModal()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-xl">Hủy</button>
+                <button onclick="saveCaidatUserWarehouseFromModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-200">Lưu phân quyền kho</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Add / Edit User Restriction -->
     <div id="caidatUserRestrictionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -2199,6 +2275,7 @@
                         <select id="caidatEditRowGroup" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             <option value="HE_THONG">HE_THONG (Hệ thống)</option>
                             <option value="KHO_HANG">KHO_HANG (Kho hàng)</option>
+                            <option value="PHAN_QUYEN_KHO">PHAN_QUYEN_KHO (Phân quyền kho)</option>
                             <option value="VAI_TRO">VAI_TRO (Vai trò)</option>
                             <option value="QUYEN_THAO_TAC">QUYEN_THAO_TAC (Quyền thao tác)</option>
                             <option value="GIOI_HAN_USER">GIOI_HAN_USER (Giới hạn User)</option>
@@ -2571,20 +2648,58 @@
         </div>
     </div>
 
-    <!-- Tab 3: User-Specific Restrictions -->
+    <!-- Tab 3: User-Specific Restrictions & Warehouse Permissions -->
     <div id="caidat-tab-content-users" class="caidat-tab-content hidden flex-1 min-h-0 overflow-y-auto p-6 flex flex-col gap-6">
+        <!-- Section 1: User Warehouse Assignment -->
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Giới hạn đặc biệt theo Tài khoản (User Restrictions)</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Ẩn mã sản phẩm cụ thể hoặc thiết lập giới hạn riêng biệt cho từng tài khoản</p>
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    Phân quyền Kho Phụ trách theo Nhân viên (User Warehouse Permissions)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Chỉ định cụ thể kho hàng được phép xem, nhập, xuất và xác nhận kho cho từng tài khoản</p>
             </div>
-            <button onclick="openCaidatAddUserRestrictionModal()"
+            <button onclick="openCaidatUserWarehouseModal()"
                 class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm shadow-blue-200">
-                <span class="text-sm font-bold">+</span> Thêm giới hạn cho User
+                <span class="text-sm font-bold">+</span> Phân quyền kho cho User
             </button>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-[300px] flex flex-col">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
+                        <tr>
+                            <th class="px-6 py-3.5 w-40">Mã Tài khoản</th>
+                            <th class="px-6 py-3.5 w-48">Tên Người dùng</th>
+                            <th class="px-6 py-3.5 w-32">Vai trò</th>
+                            <th class="px-6 py-3.5">Danh sách Kho được phân quyền</th>
+                            <th class="px-6 py-3.5 w-24 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="caidatUserWarehousesTableBody" class="divide-y divide-slate-100 text-xs">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 2: User Product Restrictions -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                    Giới hạn Ẩn sản phẩm theo Tài khoản (User Product Restrictions)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Ẩn mã sản phẩm cụ thể cho từng tài khoản khi xem danh sách sản phẩm hoặc tồn kho</p>
+            </div>
+            <button onclick="openCaidatAddUserRestrictionModal()"
+                class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm">
+                <span class="text-sm font-bold">+</span> Thêm giới hạn ẩn SP
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             <div class="overflow-x-auto flex-1">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
@@ -2735,6 +2850,44 @@
         </div>
     </div>
 
+    <!-- Modal: Add / Edit User Warehouse Permissions -->
+    <div id="caidatUserWarehouseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 id="caidatUserWarehouseModalTitle" class="font-bold text-slate-800 text-sm">Phân quyền Kho cho Người dùng</h3>
+                <button onclick="closeCaidatUserWarehouseModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="font-bold text-slate-600 uppercase block mb-1">Chọn Tài khoản / Người dùng</label>
+                    <select id="caidatWarehouseUserSelect" onchange="handleCaidatWarehouseUserSelectChange(this.value)" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <!-- Injected dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-bold text-slate-600 uppercase">Danh sách Kho được phép phụ trách</label>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="selectAllCaidatWarehouseCheckboxes(true)" class="text-[10px] font-bold text-blue-600 hover:underline">Tất cả kho</button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" onclick="selectAllCaidatWarehouseCheckboxes(false)" class="text-[10px] font-bold text-slate-500 hover:underline">Bỏ chọn hết</button>
+                        </div>
+                    </div>
+                    <div id="caidatWarehouseCheckboxesContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <!-- Checkboxes injected dynamically -->
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-blue-800 text-[11px] leading-relaxed">
+                    📦 <strong>Lưu ý:</strong> Tài khoản này khi xem các module <em>Sản phẩm kho, Nhập, Xuất, Điều chuyển</em> sẽ chỉ thấy dữ liệu và chỉ được xác nhận các đơn thuộc những kho được chọn ở trên.
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button onclick="closeCaidatUserWarehouseModal()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-xl">Hủy</button>
+                <button onclick="saveCaidatUserWarehouseFromModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-200">Lưu phân quyền kho</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Add / Edit User Restriction -->
     <div id="caidatUserRestrictionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -2797,6 +2950,7 @@
                         <select id="caidatEditRowGroup" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             <option value="HE_THONG">HE_THONG (Hệ thống)</option>
                             <option value="KHO_HANG">KHO_HANG (Kho hàng)</option>
+                            <option value="PHAN_QUYEN_KHO">PHAN_QUYEN_KHO (Phân quyền kho)</option>
                             <option value="VAI_TRO">VAI_TRO (Vai trò)</option>
                             <option value="QUYEN_THAO_TAC">QUYEN_THAO_TAC (Quyền thao tác)</option>
                             <option value="GIOI_HAN_USER">GIOI_HAN_USER (Giới hạn User)</option>

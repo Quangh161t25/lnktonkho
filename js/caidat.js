@@ -40,6 +40,7 @@ const CAIDAT_GROUPS = [
     { key: 'ALL', name: 'Tất cả nhóm' },
     { key: 'HE_THONG', name: 'Hệ thống' },
     { key: 'KHO_HANG', name: 'Kho hàng' },
+    { key: 'PHAN_QUYEN_KHO', name: 'Phân quyền kho' },
     { key: 'VAI_TRO', name: 'Vai trò' },
     { key: 'QUYEN_THAO_TAC', name: 'Quyền thao tác' },
     { key: 'GIOI_HAN_USER', name: 'Giới hạn User' },
@@ -51,6 +52,7 @@ function initCaidatWorkingCopy() {
     caidatWorkingPermissions = JSON.parse(JSON.stringify(appPermissions || DEFAULT_PERMISSIONS));
     if (!caidatWorkingPermissions.roles) caidatWorkingPermissions.roles = {};
     if (!caidatWorkingPermissions.userRestrictions) caidatWorkingPermissions.userRestrictions = {};
+    if (!caidatWorkingPermissions.userWarehouses) caidatWorkingPermissions.userWarehouses = {};
     if (!caidatWorkingPermissions.dataScopes) caidatWorkingPermissions.dataScopes = {};
     if (!caidatWorkingPermissions.modules) caidatWorkingPermissions.modules = {};
 
@@ -120,6 +122,7 @@ function renderCaidatModule() {
     renderCaidatSystemSettings();
     renderCaidatRolePills();
     renderCaidatActiveRoleDetails();
+    renderCaidatUserWarehouses();
     renderCaidatUserRestrictions();
     renderCaidatDataScopes();
     renderCaidatDataTable();
@@ -131,13 +134,14 @@ function renderCaidatModule() {
 function updateCaidatBadges() {
     const roleCount = Object.keys(caidatWorkingPermissions?.roles || {}).length;
     const userRestCount = Object.keys(caidatWorkingPermissions?.userRestrictions || {}).length;
+    const userWhCount = Object.keys(caidatWorkingPermissions?.userWarehouses || {}).length;
     const rowsCount = caidatWorkingRows.length || 0;
 
     const roleBadge = document.getElementById('caidatTabRoleCount');
     if (roleBadge) roleBadge.textContent = roleCount;
 
     const userBadge = document.getElementById('caidatTabUserCount');
-    if (userBadge) userBadge.textContent = userRestCount;
+    if (userBadge) userBadge.textContent = userWhCount + userRestCount;
 
     const rowsBadge = document.getElementById('caidatTabRowsCount');
     if (rowsBadge) rowsBadge.textContent = rowsCount;
@@ -183,7 +187,10 @@ function switchCaidatTab(tabName) {
         }
     });
 
-    if (tabName === 'sheetdata') {
+    if (tabName === 'users') {
+        renderCaidatUserWarehouses();
+        renderCaidatUserRestrictions();
+    } else if (tabName === 'sheetdata') {
         renderCaidatDataTable();
     } else if (tabName === 'json') {
         renderCaidatRawJson();
@@ -481,7 +488,150 @@ function deleteCaidatActiveRole() {
     updateCaidatBadges();
 }
 
-// ─── TAB 3: USER RESTRICTIONS ────────────────────────────────
+// ─── TAB 3: USER RESTRICTIONS & WAREHOUSE PERMISSIONS ─────────
+
+function renderCaidatUserWarehouses() {
+    const tbody = document.getElementById('caidatUserWarehousesTableBody');
+    if (!tbody || !caidatWorkingPermissions) return;
+
+    const userWhs = caidatWorkingPermissions.userWarehouses || {};
+    const userIds = Object.keys(userWhs);
+
+    if (userIds.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                    Tất cả tài khoản đang áp dụng phân quyền kho mặc định theo Vai trò (Toàn bộ kho).
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = userIds.map(uid => {
+        const whList = Array.isArray(userWhs[uid]) ? userWhs[uid] : [];
+        const userObj = (usersData || []).find(u => u.id === uid);
+        const userName = userObj ? userObj.name : '---';
+        const userRole = userObj ? userObj.role : '---';
+
+        return `
+            <tr class="hover:bg-slate-50/80 transition">
+                <td class="px-6 py-4 font-bold text-slate-800">${escAttr(uid)}</td>
+                <td class="px-6 py-4 text-slate-600">${escAttr(userName)}</td>
+                <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-slate-100 font-semibold text-slate-700">${escAttr(userRole)}</span></td>
+                <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-1.5">
+                        ${whList.length > 0
+                            ? whList.map(k => `<span class="px-2.5 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-bold text-[11px]">${escAttr(k)}</span>`).join('')
+                            : '<span class="text-slate-400 italic">Chưa gán kho (mặc định toàn bộ)</span>'}
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="openCaidatUserWarehouseModal('${escAttr(uid)}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition" title="Chỉnh sửa">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        <button onclick="deleteCaidatUserWarehouse('${escAttr(uid)}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Xóa phân quyền kho (về mặc định)">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openCaidatUserWarehouseModal(existingUserId = '') {
+    const select = document.getElementById('caidatWarehouseUserSelect');
+    const container = document.getElementById('caidatWarehouseCheckboxesContainer');
+    const title = document.getElementById('caidatUserWarehouseModalTitle');
+
+    if (select) {
+        select.innerHTML = (usersData || []).map(u => `
+            <option value="${escAttr(u.id)}">${escAttr(u.id)}${u.name ? ` - ${escAttr(u.name)}` : ''}${u.role ? ` (${escAttr(u.role)})` : ''}</option>
+        `).join('');
+        if (existingUserId) select.value = existingUserId;
+    }
+
+    const currentUserId = existingUserId || (select ? select.value : '');
+    const currentWhs = (caidatWorkingPermissions.userWarehouses && caidatWorkingPermissions.userWarehouses[currentUserId]) || [];
+    const allWarehouses = (caidatWorkingSettings && caidatWorkingSettings.warehouses) || ['KHO 1', 'KHO 2', 'KHO 3', 'KHO 4', 'KHO 5'];
+
+    if (container) {
+        container.innerHTML = allWarehouses.map(k => {
+            const isChecked = currentWhs.map(w => w.toUpperCase()).includes(k.toUpperCase());
+            return `
+                <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 hover:border-blue-300 cursor-pointer transition">
+                    <input type="checkbox" name="caidatUserWarehouseOption" value="${escAttr(k)}" ${isChecked ? 'checked' : ''}
+                        class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
+                    <span class="font-bold text-slate-700 text-xs">${escAttr(k)}</span>
+                </label>
+            `;
+        }).join('');
+    }
+
+    if (title) {
+        title.textContent = existingUserId ? `Phân quyền kho cho tài khoản ${existingUserId}` : 'Phân quyền Kho cho Người dùng';
+    }
+
+    document.getElementById('caidatUserWarehouseModal')?.classList.remove('hidden');
+}
+
+function closeCaidatUserWarehouseModal() {
+    document.getElementById('caidatUserWarehouseModal')?.classList.add('hidden');
+}
+
+function handleCaidatWarehouseUserSelectChange(userId) {
+    const currentWhs = (caidatWorkingPermissions.userWarehouses && caidatWorkingPermissions.userWarehouses[userId]) || [];
+    const checkboxes = document.querySelectorAll('input[name="caidatUserWarehouseOption"]');
+    checkboxes.forEach(cb => {
+        cb.checked = currentWhs.map(w => w.toUpperCase()).includes(cb.value.toUpperCase());
+    });
+}
+
+function selectAllCaidatWarehouseCheckboxes(selectAll) {
+    const checkboxes = document.querySelectorAll('input[name="caidatUserWarehouseOption"]');
+    checkboxes.forEach(cb => {
+        cb.checked = !!selectAll;
+    });
+}
+
+function saveCaidatUserWarehouseFromModal() {
+    const select = document.getElementById('caidatWarehouseUserSelect');
+    const userId = select ? select.value.trim() : '';
+    if (!userId) return alert("Vui lòng chọn người dùng.");
+
+    const checkboxes = document.querySelectorAll('input[name="caidatUserWarehouseOption"]:checked');
+    const selectedWarehouses = Array.from(checkboxes).map(cb => cb.value.trim());
+
+    if (selectedWarehouses.length === 0) {
+        return alert("Vui lòng chọn ít nhất 1 kho phụ trách (hoặc đóng nếu không muốn giới hạn).");
+    }
+
+    if (!caidatWorkingPermissions.userWarehouses) caidatWorkingPermissions.userWarehouses = {};
+    caidatWorkingPermissions.userWarehouses[userId] = selectedWarehouses;
+
+    setCaidatModified(true);
+    closeCaidatUserWarehouseModal();
+    renderCaidatUserWarehouses();
+    updateCaidatBadges();
+}
+
+function deleteCaidatUserWarehouse(userId) {
+    if (!confirm(`Bạn có chắc chắn muốn hủy phân quyền kho riêng cho tài khoản "${userId}" (trở về mặc định theo vai trò) không?`)) return;
+    if (caidatWorkingPermissions.userWarehouses) {
+        delete caidatWorkingPermissions.userWarehouses[userId];
+    }
+    setCaidatModified(true);
+    renderCaidatUserWarehouses();
+    updateCaidatBadges();
+}
 
 function renderCaidatUserRestrictions() {
     const tbody = document.getElementById('caidatUserRestrictionsTableBody');
