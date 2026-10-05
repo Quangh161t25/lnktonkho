@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng...</title>
+    <!-- Cách 1: Chuyển hướng ngay lập tức bằng thẻ Meta -->
+    <meta http-equiv="refresh" content="0;url=https://example.com">
+</head>
+<body>
+    <p>Đang chuyển hướng đến trang web, vui lòng đợi trong giây lát...</p>
+    <p>Nếu trình duyệt không tự chuyển, vui lòng <a id="redirectLink" href="https://example.com">bấm vào đây</a>.</p>
+
+    <!-- Cách 2: Chuyển hướng bằng JavaScript (Dự phòng) -->
+    <script>
+        // Thay thế link bên dưới bằng link bạn muốn chuyển đến
+        var targetUrl = "https://example.com";
+        
+        // Thực hiện chuyển hướng ngay lập tức
+        window.location.replace(targetUrl);
+    </script>
+</body>
+</html>
